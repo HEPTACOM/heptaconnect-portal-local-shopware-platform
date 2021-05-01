@@ -8,25 +8,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UnwalkablePathException extends ShopwareHttpException
 {
-    /**
-     * @var string
-     */
-    private $entityName;
+    private string $entityName;
 
-    /**
-     * @var string
-     */
-    private $id;
+    private string $id;
 
-    /**
-     * @var string
-     */
-    private $fromState;
+    private string $fromState;
 
-    /**
-     * @var string
-     */
-    private $toState;
+    private string $toState;
 
     public function __construct(
         string $entityName,

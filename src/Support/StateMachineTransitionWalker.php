@@ -20,20 +20,11 @@ class StateMachineTransitionWalker
 
     private const ACTION_NAME = 'action';
 
-    /**
-     * @var StateMachineRegistry
-     */
-    private $stateMachineRegistry;
+    private StateMachineRegistry $stateMachineRegistry;
 
-    /**
-     * @var DefinitionInstanceRegistry
-     */
-    private $definitionInstanceRegistry;
+    private DefinitionInstanceRegistry $definitionInstanceRegistry;
 
-    /**
-     * @var EntityRepositoryInterface
-     */
-    private $stateMachineStateRepository;
+    private EntityRepositoryInterface $stateMachineStateRepository;
 
     public function __construct(
         StateMachineRegistry $stateMachineRegistry,
