@@ -1,22 +1,25 @@
 {
-    "name": "heptacom/heptaconnect-repository-base",
+    "name": "heptacom/heptaconnect-portal-local-shopware-platform",
     "type": "library",
-    "description": "HEPTAconnect package",
+    "description": "HEPTAconnect portal to connect a local running shopware platform",
     "keywords": [
-        "heptaconnect-dataset",
-        "heptaconnect-adapter"
+        "heptaconnect-portal"
     ],
     "license": [
         "AGPL-3.0-or-later",
         "proprietary"
     ],
+    "version": "0.0.1",
     "authors": [
         {
             "name": "HEPTACOM GmbH"
         }
     ],
     "require": {
-        "php": ">=7.4"
+        "php": ">=7.4",
+        "heptacom/heptaconnect-dataset-ecommerce": ">=0.0.1",
+        "heptacom/heptaconnect-portal-base": ">=0.0.1",
+        "shopware/core": ">=6.2.1"
     },
     "conflict": {
         "nikic/php-parser": "4.7.0"
@@ -40,13 +43,20 @@
     },
     "autoload": {
         "psr-4": {
-            "Heptacom\\HeptaConnect\\": "src/"
+            "Heptacom\\HeptaConnect\\Portal\\LocalShopwarePlatform\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Heptacom\\HeptaConnect\\Test\\": "test/"
+            "Heptacom\\HeptaConnect\\Portal\\LocalShopwarePlatform\\Test\\": "test/"
         }
     },
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "extra": {
+        "heptaconnect": {
+            "portals": [
+                "Heptacom\\HeptaConnect\\Portal\\LocalShopwarePlatform\\Portal"
+            ]
+        }
+    }
 }
