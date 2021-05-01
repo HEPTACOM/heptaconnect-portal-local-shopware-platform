@@ -91,7 +91,7 @@ class ProductReceiver extends ReceiverContract
         $visibilities = $this->getSalesChannels($dalAccess->repository('sales_channel'), $dalContext)->map(
             function (SalesChannelEntity $salesChannel) use ($existingIdentifierCache, $productId, $dalContext) {
                 return [
-                    'id' => $existingIdentifierCache->getProductVisibilityId($productId, $salesChannel->getId(), $dalContext),
+                    'id' => $existingIdentifierCache->getProductVisibilityId($productId, $salesChannel->getId()),
                     'salesChannelId' => $salesChannel->getId(),
                     'visibility' => ProductVisibilityDefinition::VISIBILITY_ALL,
                 ];
@@ -137,7 +137,7 @@ class ProductReceiver extends ReceiverContract
             'name' => $this->getTranslation($entity->getName()),
             'description' => $this->getTranslation($entity->getDescription()),
             'visibilities' => $visibilities,
-            'taxId' => $existingIdentifierCache->getTaxId(19., $dalContext),
+            'taxId' => $existingIdentifierCache->getTaxId(19.),
             'unitId' => $unitId,
             'price' => [
                 [
@@ -253,7 +253,7 @@ class ProductReceiver extends ReceiverContract
         );
 
         if ($mediaId !== null) {
-            $productMediaId = $existingIdentifierCache->getProductMediaId($productId, $mediaId, $dalContext);
+            $productMediaId = $existingIdentifierCache->getProductMediaId($productId, $mediaId);
 
             $target['media'] = [
                 [
@@ -311,7 +311,7 @@ class ProductReceiver extends ReceiverContract
 
         if (isset($product['media'][0]['mediaId'])) {
             $mediaId = $product['media'][0]['mediaId'];
-            $productMediaId = $existingIdentifierCache->getProductMediaId($parent['id'], $mediaId, $context);
+            $productMediaId = $existingIdentifierCache->getProductMediaId($parent['id'], $mediaId);
 
             $parent['media'] = [
                 [
@@ -325,11 +325,7 @@ class ProductReceiver extends ReceiverContract
         }
 
         foreach ($product['visibilities'] ?? [] as $visibility) {
-            $visibilityId = $existingIdentifierCache->getProductVisibilityId(
-                $parentId,
-                $visibility['salesChannelId'],
-                $context
-            );
+            $visibilityId = $existingIdentifierCache->getProductVisibilityId($parentId, $visibility['salesChannelId']);
 
             $parent['visibilities'][] = [
                 'id' => $visibilityId,
@@ -367,7 +363,7 @@ class ProductReceiver extends ReceiverContract
                     'name' => $variant->getProductNumber(),
                     'colorHexCode' => '#000000',
                     'position' => 1,
-                    'groupId' => $existingIdentifierCache->getPropertyGroup('Number', $context),
+                    'groupId' => $existingIdentifierCache->getPropertyGroup('Number'),
                     'productConfiguratorSettings' => [[
                         'id' => $optionId,
                         'optionId' => $optionId,
@@ -546,7 +542,7 @@ class ProductReceiver extends ReceiverContract
 
             if ($sourcePrice->getCurrency() instanceof Currency) {
                 // TODO: Use mapping
-                $currencyId = $existingIdentifierCache->getCurrencyId($sourcePrice->getCurrency()->getIso(), $context);
+                $currencyId = $existingIdentifierCache->getCurrencyId($sourcePrice->getCurrency()->getIso());
             } else {
                 $currencyId = Defaults::CURRENCY;
             }

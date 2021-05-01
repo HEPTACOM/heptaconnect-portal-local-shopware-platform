@@ -17,7 +17,8 @@ use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\Translator;
 use Psr\Container\ContainerInterface;
 use Shopware\Core\Content\Media\File\FileSaver;
 use Shopware\Core\Content\Media\MediaService;
-use Symfony\Component\DependencyInjection\Container;
+use Shopware\Core\Framework\DataAbstractionLayer\DefinitionInstanceRegistry;
+use Shopware\Core\System\StateMachine\StateMachineRegistry;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class Portal extends PortalContract
@@ -28,30 +29,30 @@ class Portal extends PortalContract
 
     private FileSaver $fileSaver;
 
-    private ExistingIdentifierCache $existingIdentifierCache;
-
     private MediaService $mediaService;
 
-    private StateMachineTransitionWalker $transitionWalker;
+    private ContainerInterface $container;
 
-    private Container $container;
+    private StateMachineRegistry $stateMachineRegistry;
+
+    private DefinitionInstanceRegistry $definitionInstanceRegistry;
 
     public function __construct(
         RequestStack $requestStack,
         NormalizationRegistry $normalizationRegistry,
         FileSaver $fileSaver,
-        ExistingIdentifierCache $existingIdentifierCache,
         MediaService $mediaService,
-        StateMachineTransitionWalker $transitionWalker,
-        Container $container
+        ContainerInterface $container,
+        StateMachineRegistry $stateMachineRegistry,
+        DefinitionInstanceRegistry $definitionInstanceRegistry
     ) {
         $this->requestStack = $requestStack;
         $this->normalizationRegistry = $normalizationRegistry;
         $this->fileSaver = $fileSaver;
-        $this->existingIdentifierCache = $existingIdentifierCache;
         $this->mediaService = $mediaService;
-        $this->transitionWalker = $transitionWalker;
         $this->container = $container;
+        $this->stateMachineRegistry = $stateMachineRegistry;
+        $this->definitionInstanceRegistry = $definitionInstanceRegistry;
     }
 
     public function getExplorers(): ExplorerCollection
@@ -107,12 +108,23 @@ class Portal extends PortalContract
     {
         $result = parent::getServices();
 
-        $result[ExistingIdentifierCache::class] = $this->existingIdentifierCache;
+        $result[ExistingIdentifierCache::class] = static fn (ContainerInterface $c): ExistingIdentifierCache => new ExistingIdentifierCache(
+            $c->get(DalAccess::class)
+        );
         $result[FileSaver::class] = $this->fileSaver;
         $result[MediaService::class] = $this->mediaService;
         $result[NormalizationRegistry::class] = $this->normalizationRegistry;
         $result[RequestStack::class] = $this->requestStack;
-        $result[StateMachineTransitionWalker::class] = $this->transitionWalker;
+        $result[StateMachineTransitionWalker::class] = function (ContainerInterface $c): StateMachineTransitionWalker {
+            /** @var DalAccess $dalAccess */
+            $dalAccess = $c->get(DalAccess::class);
+
+            return new StateMachineTransitionWalker(
+                $this->stateMachineRegistry,
+                $this->definitionInstanceRegistry,
+                $dalAccess->repository('state_machine_state')
+            );
+        };
         $result[Translator::class] = static fn (ContainerInterface $c): Translator => new Translator($c->get(DalAccess::class));
         $result[DalAccess::class] = static fn (ContainerInterface $c): DalAccess => new DalAccess($c->get('shopware_container'));
         $result['shopware_container'] = $this->container;

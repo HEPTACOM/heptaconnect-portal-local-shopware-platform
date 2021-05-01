@@ -112,7 +112,7 @@ class CustomerReceiver extends ReceiverContract
             'id' => $entity->getPrimaryKey(),
             'salesChannelId' => $customerSalesChannelStrategy->getCustomerSalesChannelId($entity, $mapping, $receiveContext),
             'groupId' => $customerGroupId,
-            'languageId' => $existingIdentifierCache->getLanguageId(self::getLocale($entity), $context), // TODO use enhancer
+            'languageId' => $existingIdentifierCache->getLanguageId(self::getLocale($entity)), // TODO use enhancer
             'customerNumber' => $entity->getNumber(),
             'salutationId' => $this->getFallbackSalutation($salutationRepository, $context)->getId(),
             'firstName' => $entity->getNames()->first(),
@@ -232,7 +232,7 @@ class CustomerReceiver extends ReceiverContract
             'email' => $entity->getEmail(),
             'active' => $entity->isActive(),
             'guest' => $entity->isGuest(),
-            'languageId' => $existingIdentifierCache->getLanguageId(self::getLocale($entity), $context),
+            'languageId' => $existingIdentifierCache->getLanguageId(self::getLocale($entity)),
         ];
 
         if ($existingCustomer->getSalesChannelId() === Defaults::SALES_CHANNEL) {
