@@ -12,6 +12,7 @@ use Heptacom\HeptaConnect\Dataset\Ecommerce\Address\CountryState;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Address\Salutation;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Currency\Currency;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Customer\Customer;
+use Heptacom\HeptaConnect\Dataset\Ecommerce\Order\LineItem;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Order\LineItem\Product as LineItemProduct;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Order\LineItem\Shipping;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Order\LineItem\Text;
@@ -38,6 +39,7 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStat
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Checkout\Promotion\Cart\PromotionProcessor;
+use Shopware\Core\Checkout\Shipping\ShippingMethodEntity;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Defaults;
 use Shopware\Core\System\Country\Aggregate\CountryState\CountryStateEntity;
@@ -51,10 +53,8 @@ class OrderEmitter extends EmitterContract
         return Order::class;
     }
 
-    protected function run(
-        MappingInterface $mapping,
-        EmitContextInterface $context
-    ): ?DatasetEntityContract {
+    protected function run(MappingInterface $mapping, EmitContextInterface $context): ?DatasetEntityContract
+    {
         $container = $context->getContainer();
         /** @var DalAccess $dalAccess */
         $dalAccess = $container->get(DalAccess::class);
@@ -67,8 +67,8 @@ class OrderEmitter extends EmitterContract
                 'addresses.salutation',
                 'addresses.country',
                 'addresses.countryState',
-                'deliveries',
-                'transactions',
+                'deliveries.shippingMethod',
+                'transactions.paymentMethod',
                 'lineItems.product',
             ])->first();
 
@@ -129,6 +129,8 @@ class OrderEmitter extends EmitterContract
             ->setOrderTime($source->getOrderDateTime())
             ->setAmountNet($source->getPrice()->getNetPrice())
             ->setAmountTotal($source->getPrice()->getTotalPrice())
+            ->setShippingTotal($this->calculateTotalShippingCosts($targetLineItems))
+            ->setTotalTax($source->getPrice()->getTotalPrice() - $source->getPrice()->getNetPrice())
             ->setLineItems($targetLineItems)
             ->setCustomer($targetCustomer)
             ->setCurrency($targetCurrency)
@@ -303,6 +305,8 @@ class OrderEmitter extends EmitterContract
                 $targetLineItem->setUnitPriceNet($sourcePrice->getUnitPrice() - self::getCumulativeTaxes($sourcePrice) / \max($sourcePrice->getQuantity(), 1));
                 $targetLineItem->setTotalPrice($sourcePrice->getTotalPrice());
                 $targetLineItem->setTotalPriceNet($sourcePrice->getTotalPrice() - self::getCumulativeTaxes($sourcePrice));
+                $targetLineItem->setUnitTaxAmount($targetLineItem->getUnitPrice() - $targetLineItem->getUnitPriceNet());
+                $targetLineItem->setTotalTaxAmount($targetLineItem->getTotalPrice() - $targetLineItem->getTotalPriceNet());
 
                 $calculatedTax = $sourcePrice->getCalculatedTaxes()->first();
 
@@ -318,8 +322,14 @@ class OrderEmitter extends EmitterContract
             $sourcePrice = $sourceDelivery->getShippingCosts();
 
             $targetLineItem = new Shipping();
-            $targetLineItem->getLabel()->setTranslation('default', 'shipping');
+            $targetLineItem->getLabel()->setTranslation('default', 'Shipping');
             $targetLineItem->setQuantity(1);
+
+            $sourceShippingMethod = $sourceDelivery->getShippingMethod();
+
+            if ($sourceShippingMethod instanceof ShippingMethodEntity) {
+                $targetLineItem->getDescription()->setTranslation('default', $sourceShippingMethod->getName());
+            }
 
             $targetLineItem->setUnitPrice($sourcePrice->getUnitPrice());
             $targetLineItem->setUnitPriceNet($sourcePrice->getUnitPrice() - self::getCumulativeTaxes($sourcePrice) / \max($sourcePrice->getQuantity(), 1));
@@ -352,5 +362,21 @@ class OrderEmitter extends EmitterContract
     protected static function getCumulativeTaxes(CalculatedPrice $sourcePrice): float
     {
         return (float) \array_sum($sourcePrice->getCalculatedTaxes()->map(fn (CalculatedTax $tax): float => $tax->getTax()));
+    }
+
+    protected function calculateTotalShippingCosts(LineItemCollection $lineItems): float
+    {
+        $shippingCosts = .0;
+
+        /** @var LineItem $lineItem */
+        foreach ($lineItems as $lineItem) {
+            if (!$lineItem instanceof Shipping) {
+                continue;
+            }
+
+            $shippingCosts += $lineItem->getTotalPrice();
+        }
+
+        return $shippingCosts;
     }
 }
