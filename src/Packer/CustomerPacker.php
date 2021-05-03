@@ -18,7 +18,6 @@ use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\StorageHelper;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerGroup\CustomerGroupEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
-use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\Country\Aggregate\CountryState\CountryStateEntity;
@@ -36,11 +35,9 @@ class CustomerPacker
 
     public function pack(string $customerId, PortalStorageInterface $portalStorage): Customer
     {
-        $sourceCustomer = $this->dalAccess->getContext()->disableCache(function (Context $c) use ($customerId): ?CustomerEntity {
-            return $this->dalAccess->read('customer', [$customerId], [
+        $sourceCustomer = $this->dalAccess->read('customer', [$customerId], [
                 'language.locale',
                 'salutation',
-                'tags',
                 'addresses.salutation',
                 'addresses.country',
                 'addresses.countryState',
@@ -50,8 +47,7 @@ class CustomerPacker
                 'defaultShippingAddress.country',
                 'defaultShippingAddress.countryState',
                 'defaultShippingAddress.salutation',
-            ], $c)->first();
-        });
+            ])->first();
 
         if (!$sourceCustomer instanceof CustomerEntity) {
             throw new \Exception(\sprintf('Customer with id: %s not found.', $customerId));

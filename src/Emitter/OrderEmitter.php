@@ -40,7 +40,6 @@ use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Checkout\Promotion\Cart\PromotionProcessor;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Defaults;
-use Shopware\Core\Framework\Context;
 use Shopware\Core\System\Country\Aggregate\CountryState\CountryStateEntity;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Currency\CurrencyEntity;
@@ -62,8 +61,7 @@ class OrderEmitter extends EmitterContract
         /** @var CustomerPacker $customerPacker */
         $customerPacker = $container->get(CustomerPacker::class);
 
-        $source = $dalAccess->getContext()->disableCache(function (Context $c) use ($mapping, $dalAccess): ?OrderEntity {
-            return $dalAccess->read('order', [$mapping->getExternalId()], [
+        $source = $dalAccess->read('order', [$mapping->getExternalId()], [
                 'orderCustomer',
                 'currency',
                 'addresses.salutation',
@@ -72,8 +70,7 @@ class OrderEmitter extends EmitterContract
                 'deliveries',
                 'transactions',
                 'lineItems.product',
-            ], $c)->first();
-        });
+            ])->first();
 
         if (!$source instanceof OrderEntity) {
             throw new \Exception('Order was not found');
