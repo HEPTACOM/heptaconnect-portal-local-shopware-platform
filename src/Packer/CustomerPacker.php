@@ -19,7 +19,6 @@ use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEnt
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerGroup\CustomerGroupEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\Country\Aggregate\CountryState\CountryStateEntity;
@@ -30,12 +29,9 @@ class CustomerPacker
 {
     private DalAccess $dalAccess;
 
-    private EntityRepositoryInterface $customerGroups;
-
     public function __construct(DalAccess $dalAccess)
     {
         $this->dalAccess = $dalAccess;
-        $this->customerGroups = $dalAccess->repository('customer_group');
     }
 
     public function pack(string $customerId, PortalStorageInterface $portalStorage): Customer
@@ -218,7 +214,10 @@ class CustomerPacker
     {
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('customers.id', $customerId));
-        $customerGroup = $this->customerGroups->search($criteria, $this->dalAccess->getContext())->first();
+        $customerGroup = $this->dalAccess
+            ->repository('customer_group')
+            ->search($criteria, $this->dalAccess->getContext())
+            ->first();
 
         $result = new CustomerGroup();
 
