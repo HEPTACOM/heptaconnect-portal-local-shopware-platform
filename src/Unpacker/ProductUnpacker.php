@@ -44,16 +44,20 @@ class ProductUnpacker
 
     private MediaUnpacker $mediaUnpacker;
 
+    private ManufacturerUnpacker $manufacturerUnpacker;
+
     private ?SalesChannelCollection $salesChannels = null;
 
     public function __construct(
         DalAccess $dalAccess,
         ExistingIdentifierCache $existingIdentifierCache,
-        MediaUnpacker $mediaUnpacker
+        MediaUnpacker $mediaUnpacker,
+        ManufacturerUnpacker $manufacturerUnpacker
     ) {
         $this->dalAccess = $dalAccess;
         $this->existingIdentifierCache = $existingIdentifierCache;
         $this->mediaUnpacker = $mediaUnpacker;
+        $this->manufacturerUnpacker = $manufacturerUnpacker;
     }
 
     public function unpack(Product $source): array
@@ -75,6 +79,11 @@ class ProductUnpacker
             ]
         ];
         $productMedias = $this->getProductMedias($source);
+        $manufacturer = null;
+
+        if ($source->getManufacturer() instanceof Manufacturer) {
+            $manufacturer = $this->manufacturerUnpacker->unpack($source->getManufacturer());
+        }
 
         if ($source->getPrices()->count() < 1) {
             $unconditionalPrices = \iterable_to_array(
@@ -122,6 +131,7 @@ class ProductUnpacker
             'prices' => $prices,
             'media' => $productMedias,
             'coverId' => $productMedias[0]['id'] ?? null,
+            'manufacturer' => $manufacturer,
             'categories' => \array_map(
                 static fn (Category $category) => [
                     'id' => $category->getPrimaryKey(),
@@ -132,18 +142,6 @@ class ProductUnpacker
                 )
             ),
         ];
-
-        if ($source->getManufacturer() instanceof Manufacturer) {
-            // TODO improve id generation
-            $targetManufacturerId = $source->getManufacturer()->getPrimaryKey() ?? Uuid::randomHex();
-            $source->getManufacturer()->setPrimaryKey($targetManufacturerId);
-
-            // TODO translations
-            $target['manufacturer'] = [
-                'id' => $targetManufacturerId,
-                'name' => $source->getManufacturer()->getName()->getTranslation('default'),
-            ];
-        }
 
         return $target;
     }
