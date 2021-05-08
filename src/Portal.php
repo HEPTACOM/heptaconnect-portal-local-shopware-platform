@@ -89,6 +89,7 @@ class Portal extends PortalContract
             new Receiver\CustomerReceiver(),
             new Receiver\CustomerGroupReceiver(),
             new Receiver\CustomerPriceGroupReceiver(),
+            new Receiver\ManufacturerReceiver(),
             new Receiver\MediaReceiver(),
             new Receiver\CategoryReceiver(),
             new Receiver\OrderReceiver(),
