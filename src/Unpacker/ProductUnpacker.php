@@ -3,10 +3,9 @@ declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker;
 
-use Heptacom\HeptaConnect\Core\Storage\NormalizationRegistry;
-use Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Currency\Currency;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\Media;
+use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\MediaCollection;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Price\Condition;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Price\Condition\ValidityPeriodCondition;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Price\Price;
@@ -18,9 +17,7 @@ use Heptacom\HeptaConnect\Dataset\Ecommerce\Tax\TaxGroupRule;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\ExistingIdentifierCache;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\PrimaryKeyGenerator;
-use Psr\Http\Message\StreamInterface;
 use Ramsey\Uuid\Uuid as RamseyUuid;
-use Shopware\Core\Content\Media\MediaService;
 use Shopware\Core\Content\Product\Aggregate\ProductVisibility\ProductVisibilityDefinition;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -45,22 +42,18 @@ class ProductUnpacker
 
     private ExistingIdentifierCache $existingIdentifierCache;
 
-    private MediaService $mediaService;
-
-    private NormalizationRegistry $normalizationRegistry;
+    private MediaUnpacker $mediaUnpacker;
 
     private ?SalesChannelCollection $salesChannels = null;
 
     public function __construct(
         DalAccess $dalAccess,
         ExistingIdentifierCache $existingIdentifierCache,
-        MediaService $mediaService,
-        NormalizationRegistry $normalizationRegistry
+        MediaUnpacker $mediaUnpacker
     ) {
         $this->dalAccess = $dalAccess;
         $this->existingIdentifierCache = $existingIdentifierCache;
-        $this->mediaService = $mediaService;
-        $this->normalizationRegistry = $normalizationRegistry;
+        $this->mediaUnpacker = $mediaUnpacker;
     }
 
     public function unpack(Product $source): array
@@ -81,6 +74,7 @@ class ProductUnpacker
                 'linked' => true,
             ]
         ];
+        $productMedias = $this->getProductMedias($source);
 
         if ($source->getPrices()->count() < 1) {
             $unconditionalPrices = \iterable_to_array(
@@ -126,6 +120,8 @@ class ProductUnpacker
             'purchaseUnit' => $source->getPurchaseQuantity(),
             'price' => $price,
             'prices' => $prices,
+            'media' => $productMedias,
+            'coverId' => $productMedias[0]['id'] ?? null,
             'categories' => \array_map(
                 static fn (Category $category) => [
                     'id' => $category->getPrimaryKey(),
@@ -147,22 +143,6 @@ class ProductUnpacker
                 'id' => $targetManufacturerId,
                 'name' => $source->getManufacturer()->getName()->getTranslation('default'),
             ];
-        }
-
-        $mediaId = $this->getMediaId($source);
-
-        if ($mediaId !== null) {
-            $productMediaId = $this->existingIdentifierCache->getProductMediaId($productId, $mediaId);
-
-            $target['media'] = [
-                [
-                    'id' => $productMediaId,
-                    'mediaId' => $mediaId,
-                    'position' => 0,
-                ],
-            ];
-
-            $target['coverId'] = $productMediaId;
         }
 
         return $target;
@@ -393,37 +373,49 @@ class ProductUnpacker
         }
     }
 
-    protected function getMediaId(DatasetEntityContract $entity): ?string
+    protected function getProductMedias(Product $product): array
     {
-        $media = $entity->getAttachment(Media::class);
+        $productId = $product->getPrimaryKey();
 
-        if (!$media instanceof Media) {
-            return null;
+        if ($productId === null) {
+            return [];
         }
 
-        if (!$this->dalAccess->idExists('media', $media->getPrimaryKey())) {
-            $denormalizer = $this->normalizationRegistry->getDenormalizer('stream');
-            $stream = $denormalizer->denormalize($media->getNormalizedStream(), 'stream');
+        $unpackedMedias = [];
 
-            if (!$stream instanceof StreamInterface) {
-                return null;
+        if ($product->hasAttached(Media::class)) {
+            /** @var Media $media */
+            $media = $product->getAttachment(Media::class);
+            $unpackedMedia = $this->mediaUnpacker->unpack($media);
+
+            if ($unpackedMedia !== []) {
+                $unpackedMedias[] = $unpackedMedia;
             }
-
-            $mediaId = $this->mediaService->saveFile(
-                $stream->getContents(),
-                \explode('/', $media->getMimeType(), 2)[1] ?? 'bin',
-                $media->getMimeType(),
-                RamseyUuid::uuid4()->toString(),
-                $this->dalAccess->getContext(),
-                'product',
-                null,
-                false
-            );
-
-            $media->setPrimaryKey($mediaId);
         }
 
-        return $media->getPrimaryKey();
-    }
+        if ($product->hasAttached(MediaCollection::class)) {
+            /** @var MediaCollection $medias */
+            $medias = $product->getAttachment(MediaCollection::class);
 
+            foreach ($medias as $media) {
+                $unpackedMedia = $this->mediaUnpacker->unpack($media);
+
+                if ($unpackedMedia !== []) {
+                    $unpackedMedias[] = $unpackedMedia;
+                }
+            }
+        }
+
+        if ($unpackedMedias === []) {
+            return [];
+        }
+
+        $productMedias = \array_map(fn (array $unpackedMedia): array => [
+            'id' => $this->existingIdentifierCache->getProductMediaId($productId, $unpackedMedia['id']),
+            'media' => $unpackedMedia,
+            'position' => 0,
+        ], $unpackedMedias);
+
+        return $productMedias;
+    }
 }

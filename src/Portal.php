@@ -134,11 +134,15 @@ class Portal extends PortalContract
         $result[Packer\OrderStatePacker::class] = new Packer\OrderStatePacker();
         $result[CustomerSalesChannelStrategyContract::class] = static fn (ContainerInterface $c) => new CustomerSalesChannelStrategyContract();
 
+        $result[Unpacker\MediaUnpacker::class] = static fn (ContainerInterface $c): Unpacker\MediaUnpacker => new Unpacker\MediaUnpacker(
+            $c->get(MediaService::class),
+            $c->get(NormalizationRegistry::class),
+            $c->get(DalAccess::class)
+        );
         $result[Unpacker\ProductUnpacker::class] = static fn (ContainerInterface $c): Unpacker\ProductUnpacker => new Unpacker\ProductUnpacker(
             $c->get(DalAccess::class),
             $c->get(ExistingIdentifierCache::class),
-            $c->get(MediaService::class),
-            $c->get(NormalizationRegistry::class)
+            $c->get(Unpacker\MediaUnpacker::class)
         );
 
         return $result;
