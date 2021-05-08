@@ -46,7 +46,14 @@ class ProductReceiver extends ReceiverContract
             $productPriceRepository->delete($deleteProductPriceIds, $dalContext);
         }
 
+        // separate cover update to allow correct dependency order
+        $coverId = $target['coverId'] = null;
+        unset($target['coverId']);
 
         $productRepository->upsert([$target], $dalContext);
+        $productRepository->update([[
+            'id' => $target['id'],
+            'coverId' => $coverId,
+        ]], $dalContext);
     }
 }
