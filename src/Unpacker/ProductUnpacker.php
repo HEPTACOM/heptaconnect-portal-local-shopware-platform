@@ -30,8 +30,6 @@ class ProductUnpacker
 {
     private const NS_PRODUCT = '5fb023e75e65494f9160b99602ce0587';
 
-    private const NS_UNIT = '07c24254c14d4d648f972413aaab15ba';
-
     public const NS_RULE_ID = 'cbfb4fc6171911eb895d33ddd3eed5ba';
 
     public const NS_CONDITION_CONTAINER_OR = '2caad876178011ebbeba832e03190a18';
@@ -46,18 +44,22 @@ class ProductUnpacker
 
     private ManufacturerUnpacker $manufacturerUnpacker;
 
+    private UnitUnpacker $unitUnpacker;
+
     private ?SalesChannelCollection $salesChannels = null;
 
     public function __construct(
         DalAccess $dalAccess,
         ExistingIdentifierCache $existingIdentifierCache,
         MediaUnpacker $mediaUnpacker,
-        ManufacturerUnpacker $manufacturerUnpacker
+        ManufacturerUnpacker $manufacturerUnpacker,
+        UnitUnpacker $unitUnpacker
     ) {
         $this->dalAccess = $dalAccess;
         $this->existingIdentifierCache = $existingIdentifierCache;
         $this->mediaUnpacker = $mediaUnpacker;
         $this->manufacturerUnpacker = $manufacturerUnpacker;
+        $this->unitUnpacker = $unitUnpacker;
     }
 
     public function unpack(Product $source): array
@@ -67,7 +69,12 @@ class ProductUnpacker
         $source->setPrimaryKey($productId);
 
         $visibilities = $this->unpackVisibilities($source);
-        $unitId = $this->unpackUnitId($source->getUnit());
+        $unit = null;
+
+        if ($source->getUnit() instanceof Unit) {
+            $unit = $this->unitUnpacker->unpack($source->getUnit());
+        }
+
         $taxId = $this->unpackTaxId($source);
         $prices = iterable_to_array($this->unpackPrices($source));
         $active = $source->isActive();
@@ -111,7 +118,7 @@ class ProductUnpacker
             }
         }
 
-        $target = [
+        return [
             'id' => $productId,
             'parentId' => null,
             'active' => $active,
@@ -125,7 +132,7 @@ class ProductUnpacker
             'description' => $source->getDescription()->getTranslation('default'),
             'visibilities' => $visibilities,
             'taxId' => $taxId,
-            'unitId' => $unitId,
+            'unit' => $unit,
             'purchaseUnit' => $source->getPurchaseQuantity(),
             'price' => $price,
             'prices' => $prices,
@@ -142,8 +149,6 @@ class ProductUnpacker
                 )
             ),
         ];
-
-        return $target;
     }
 
     protected function unpackProductId(Product $source): string
@@ -197,44 +202,6 @@ class ProductUnpacker
             'salesChannelId' => $salesChannel->getId(),
             'visibility' => ProductVisibilityDefinition::VISIBILITY_ALL,
         ]);
-    }
-
-    protected function unpackUnitId(Unit $source): string
-    {
-        // TODO support translations
-        $id = $source->getPrimaryKey();
-        $name = $source->getName()->getTranslation('default');
-        $shortCode = $source->getSymbol();
-        $unitRepository = $this->dalAccess->repository('unit');
-
-        if ($id === null) {
-            $unitCriteria = (new Criteria())->addFilter(new EqualsFilter('name', $name));
-            $id = $unitRepository->searchIds($unitCriteria, $this->dalAccess->getContext())->firstId();
-        }
-
-        if ($id === null) {
-            $id = RamseyUuid::uuid5(self::NS_UNIT, $name)->getHex();
-
-            $unitRepository->create([
-                [
-                    'id' => $id,
-                    'name' => $name,
-                    'shortCode' => $shortCode,
-                ],
-            ], $this->dalAccess->getContext());
-
-            $source->setPrimaryKey($id);
-        } else {
-            $unitRepository->update([
-                [
-                    'id' => $id,
-                    'name' => $name,
-                    'shortCode' => $shortCode,
-                ],
-            ], $this->dalAccess->getContext());
-        }
-
-        return $id;
     }
 
     protected function unpackTaxId(Product $source): string

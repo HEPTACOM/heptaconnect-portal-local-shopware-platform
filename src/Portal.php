@@ -145,7 +145,12 @@ class Portal extends PortalContract
             $c->get(DalAccess::class),
             $c->get(ExistingIdentifierCache::class),
             $c->get(Unpacker\MediaUnpacker::class),
-            $c->get(Unpacker\ManufacturerUnpacker::class)
+            $c->get(Unpacker\ManufacturerUnpacker::class),
+            $c->get(Unpacker\UnitUnpacker::class)
+        );
+        $result[Unpacker\UnitUnpacker::class] = static fn (ContainerInterface $c): Unpacker\UnitUnpacker => new Unpacker\UnitUnpacker(
+            $c->get(DalAccess::class),
+            $c->get(Translator::class)
         );
 
         return $result;
