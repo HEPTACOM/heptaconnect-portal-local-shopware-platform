@@ -17,7 +17,7 @@ class ManufacturerUnpacker
         // TODO translations
         return [
             'id' => $targetManufacturerId,
-            'name' => $source->getName()->getTranslation('default'),
+            'name' => $source->getName()->getFallback(),
         ];
     }
 }

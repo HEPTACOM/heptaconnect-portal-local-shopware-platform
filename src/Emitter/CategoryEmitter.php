@@ -11,6 +11,7 @@ use Heptacom\HeptaConnect\Portal\Base\Mapping\Contract\MappingInterface;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Shopware\Core\Content\Category\Aggregate\CategoryTranslation\CategoryTranslationCollection;
 use Shopware\Core\Content\Category\CategoryEntity;
+use Shopware\Core\Defaults;
 use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\System\Locale\LocaleEntity;
 
@@ -50,6 +51,10 @@ class CategoryEmitter extends EmitterContract
 
                 if (!$locale instanceof LocaleEntity) {
                     continue;
+                }
+
+                if ($language->getId() === Defaults::LANGUAGE_SYSTEM) {
+                    $target->getName()->setFallback($translation->getName());
                 }
 
                 $target->getName()->setTranslation($locale->getCode(), $translation->getName() ?? '');

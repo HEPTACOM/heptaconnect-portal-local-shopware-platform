@@ -41,13 +41,10 @@ class CategoryReceiver extends ReceiverContract
         $categoryRepository = $dalAccess->repository('category');
 
         $categoryParent = $entity->getParent();
-        $defaultName = $entity->getName()
-            ->getTranslation($entity->getName()->getLocaleKeys()[0] ?? 'default');
-
         $translations = [];
 
         foreach ($entity->getName()->getLocaleKeys() as $localeKey) {
-            $name = \trim($entity->getName()->getTranslation($localeKey));
+            $name = \trim($entity->getName()->getTranslation($localeKey, false) ?? '');
 
             if ($name === '') {
                 continue;
@@ -57,7 +54,7 @@ class CategoryReceiver extends ReceiverContract
         }
 
         $translations[Defaults::LANGUAGE_SYSTEM] = [
-            'name' => $defaultName ?? ('Category '.$categoryId),
+            'name' => $entity->getName()->getFallback() ?? ('Category '.$categoryId),
         ];
 
         $parentId = $categoryParent ? $categoryParent->getPrimaryKey() : null;

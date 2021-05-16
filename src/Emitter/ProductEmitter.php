@@ -11,6 +11,7 @@ use Heptacom\HeptaConnect\Portal\Base\Mapping\Contract\MappingInterface;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Shopware\Core\Content\Product\Aggregate\ProductTranslation\ProductTranslationCollection;
 use Shopware\Core\Content\Product\ProductEntity;
+use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -89,6 +90,10 @@ class ProductEmitter extends EmitterContract
 
                 if (\is_null($name) || $name === '') {
                     continue;
+                }
+
+                if ($language->getId() === Defaults::LANGUAGE_SYSTEM) {
+                    $target->getName()->setFallback($translation->getName());
                 }
 
                 $target->getName()->setTranslation($locale->getCode(), $name);

@@ -189,7 +189,7 @@ class OrderReceiver extends ReceiverContract
             'quantity' => $sourceLineItem->getQuantity(),
             'unitPrice' => $sourceLineItem->getUnitPrice(),
             'totalPrice' => $sourceLineItem->getTotalPrice(),
-            'label' => $sourceLineItem->getLabel()->getTranslation('default'),
+            'label' => $sourceLineItem->getLabel()->getFallback(),
             'position' => $sourceLineItem->getPosition(),
             'price' => $price,
             'type' => 'product',

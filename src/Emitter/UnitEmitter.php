@@ -9,6 +9,7 @@ use Heptacom\HeptaConnect\Portal\Base\Emission\Contract\EmitContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Emission\Contract\EmitterContract;
 use Heptacom\HeptaConnect\Portal\Base\Mapping\Contract\MappingInterface;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
+use Shopware\Core\Defaults;
 use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\System\Locale\LocaleEntity;
 use Shopware\Core\System\Unit\Aggregate\UnitTranslation\UnitTranslationCollection;
@@ -51,6 +52,10 @@ class UnitEmitter extends EmitterContract
 
                 if (!$locale instanceof LocaleEntity) {
                     continue;
+                }
+
+                if ($language->getId() === Defaults::LANGUAGE_SYSTEM) {
+                    $target->getName()->setFallback($translation->getName());
                 }
 
                 $target->getName()->setTranslation($locale->getCode(), $translation->getName() ?? '');

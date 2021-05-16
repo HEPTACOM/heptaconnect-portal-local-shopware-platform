@@ -142,11 +142,9 @@ class OrderEmitter extends EmitterContract
         $paymentMethod->setPrimaryKey($sourceTransaction->getPaymentMethodId());
 
         if ($sourceTransaction->getPaymentMethod() instanceof PaymentMethodEntity) {
-            $paymentMethod->getName()->setTranslation(
-                'default',
-                $sourceTransaction->getPaymentMethod()->getShortName() ??
-                    $sourceTransaction->getPaymentMethod()->getName() ??
-                    $sourceTransaction->getPaymentMethod()->getDescription()
+            $paymentMethod->getName()->setFallback($sourceTransaction->getPaymentMethod()->getShortName() ??
+                $sourceTransaction->getPaymentMethod()->getName() ??
+                $sourceTransaction->getPaymentMethod()->getDescription()
             );
         }
 
@@ -280,7 +278,7 @@ class OrderEmitter extends EmitterContract
 
                 $targetLineItem = new LineItemProduct();
 
-                $targetLineItem->getDescription()->setTranslation('default', \implode(', ', $configurations));
+                $targetLineItem->getDescription()->setFallback(\implode(', ', $configurations));
                 $targetLineItem->setNumber($sourceProduct->getProductNumber());
 
                 $product = new Product();
@@ -295,7 +293,7 @@ class OrderEmitter extends EmitterContract
             }
 
             $targetLineItem->setPrimaryKey($sourceLineItem->getId());
-            $targetLineItem->getLabel()->setTranslation('default', $sourceLineItem->getLabel());
+            $targetLineItem->getLabel()->setFallback($sourceLineItem->getLabel());
             $targetLineItem->setQuantity($sourceLineItem->getQuantity());
 
             $sourcePrice = $sourceLineItem->getPrice();
@@ -322,13 +320,13 @@ class OrderEmitter extends EmitterContract
             $sourcePrice = $sourceDelivery->getShippingCosts();
 
             $targetLineItem = new Shipping();
-            $targetLineItem->getLabel()->setTranslation('default', 'Shipping');
+            $targetLineItem->getLabel()->setFallback('Shipping');
             $targetLineItem->setQuantity(1);
 
             $sourceShippingMethod = $sourceDelivery->getShippingMethod();
 
             if ($sourceShippingMethod instanceof ShippingMethodEntity) {
-                $targetLineItem->getDescription()->setTranslation('default', $sourceShippingMethod->getName());
+                $targetLineItem->getDescription()->setFallback($sourceShippingMethod->getName());
             }
 
             $targetLineItem->setUnitPrice($sourcePrice->getUnitPrice());
@@ -350,8 +348,8 @@ class OrderEmitter extends EmitterContract
         if (\is_string($customerComment)) {
             $targetLineItem = new Text();
 
-            $targetLineItem->getLabel()->setTranslation('default', 'Kommentar');
-            $targetLineItem->getDescription()->setTranslation('default', $customerComment);
+            $targetLineItem->getLabel()->setFallback('Kommentar');
+            $targetLineItem->getDescription()->setFallback($customerComment);
 
             $targetLineItems->push([$targetLineItem]);
         }

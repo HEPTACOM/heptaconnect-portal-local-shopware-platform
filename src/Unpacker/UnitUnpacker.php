@@ -28,13 +28,12 @@ class UnitUnpacker
     public function unpack(Unit $source): array
     {
         $id = $source->getPrimaryKey();
-        $defaultName = $source->getName()
-            ->getTranslation($source->getName()->getLocaleKeys()[0] ?? 'default');
+        $defaultName = $source->getName()->getFallback();
 
         $translations = [];
 
         foreach ($source->getName()->getLocaleKeys() as $localeKey) {
-            $name = \trim($source->getName()->getTranslation($localeKey));
+            $name = \trim($source->getName()->getTranslation($localeKey, false));
 
             if ($name === '') {
                 continue;
