@@ -17,6 +17,8 @@
     ],
     "require": {
         "php": ">=7.4",
+        "heptacom/heptaconnect-bridge-shopware-platform": ">=0.0.1",
+        "heptacom/heptaconnect-core": ">=0.0.1",
         "heptacom/heptaconnect-dataset-ecommerce": ">=0.0.1",
         "heptacom/heptaconnect-portal-base": ">=0.0.1",
         "shopware/core": ">=6.2.1"
