@@ -77,6 +77,10 @@ class DalAccess
         // TODO make configurable
         $result->addExtension(EntityIndexerRegistry::DISABLE_INDEXING, new ArrayStruct());
 
-        return $result->disableCache(static fn (Context $context): Context => clone $context);
+        if (\method_exists(Context::class, 'disableCache')) {
+            return $result->disableCache(static fn (Context $context): Context => clone $context);
+        } else {
+            return $result;
+        }
     }
 }
