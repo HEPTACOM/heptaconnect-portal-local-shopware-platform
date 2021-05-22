@@ -62,6 +62,9 @@ class MediaUnpacker
 
         return [
             'id' => $source->getPrimaryKey(),
+            // TODO support better translation
+            'alt' => $source->getTitle()->getFallback(),
+            'title' => $source->getTitle()->getFallback(),
         ];
     }
 }

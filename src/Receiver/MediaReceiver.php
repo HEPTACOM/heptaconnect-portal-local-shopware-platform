@@ -62,6 +62,13 @@ class MediaReceiver extends ReceiverContract
             ]], $swContext);
         }
 
+        $mediaRepository->update([[
+            'id' => $entity->getPrimaryKey(),
+            // TODO improve translations
+            'alt' => $entity->getTitle()->getFallback(),
+            'title' => $entity->getTitle()->getFallback(),
+        ]], $swContext);
+
         $fileName = \tempnam(\sys_get_temp_dir(), 'local-media-receiver');
 
         /** @var FileSaver $fileSaver */
