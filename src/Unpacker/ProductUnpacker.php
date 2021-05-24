@@ -133,13 +133,13 @@ class ProductUnpacker
             'description' => $source->getDescription()->getFallback(),
             'visibilities' => $visibilities,
             'taxId' => $taxId,
-            'unit' => $unit,
+            ($unit === null ? 'unitId' : 'unit') => $unit,
             'purchaseUnit' => $source->getPurchaseQuantity(),
             'price' => $price,
             'prices' => $prices,
             'media' => $productMedias,
             'coverId' => $productMedias[0]['id'] ?? null,
-            'manufacturer' => $manufacturer,
+            ($manufacturer === null ? 'manufacturerId' : 'manufacturer') => $manufacturer,
             'categories' => \array_map(
                 static fn (Category $category) => [
                     'id' => $category->getPrimaryKey(),
