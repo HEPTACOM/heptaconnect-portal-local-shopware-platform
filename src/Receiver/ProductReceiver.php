@@ -47,7 +47,7 @@ class ProductReceiver extends ReceiverContract
         }
 
         // separate cover update to allow correct dependency order
-        $coverId = $target['coverId'] = null;
+        $coverId = $target['coverId'];
         unset($target['coverId']);
 
         $productRepository->upsert([$target], $dalContext);
