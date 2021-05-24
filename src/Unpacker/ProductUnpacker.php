@@ -80,6 +80,7 @@ class ProductUnpacker
         $active = $source->isActive();
         $price = [
             [
+                'currencyId' => Defaults::CURRENCY,
                 'gross' => 0,
                 'net' => 0,
                 'linked' => true,
