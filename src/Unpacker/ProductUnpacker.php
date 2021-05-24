@@ -126,7 +126,7 @@ class ProductUnpacker
             'productNumber' => $source->getNumber(),
             'stock' => (int) $source->getInventory(),
             'minPurchase' => 1,
-            'purchaseSteps' => (int) $source->getPurchaseQuantity(),
+            'purchaseSteps' => (int) \max($source->getPurchaseQuantity() ?? 1, 1),
             'isCloseout' => true,
             'shippingFree' => false,
             'name' => $source->getName()->getFallback(),
