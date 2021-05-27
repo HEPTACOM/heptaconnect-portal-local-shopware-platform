@@ -94,6 +94,8 @@ class Portal extends PortalContract
             new Receiver\CategoryReceiver(),
             new Receiver\OrderReceiver(),
             new Receiver\ProductReceiver(),
+            new Receiver\PropertyGroupReceiver(),
+            new Receiver\PropertyValueReceiver(),
             new Receiver\UnitReceiver(),
         ]);
     }
@@ -148,6 +150,8 @@ class Portal extends PortalContract
             $c->get(Unpacker\ManufacturerUnpacker::class),
             $c->get(Unpacker\UnitUnpacker::class)
         );
+        $result[Unpacker\PropertyGroupUnpacker::class] = static fn (ContainerInterface $c): Unpacker\PropertyGroupUnpacker => new Unpacker\PropertyGroupUnpacker();
+        $result[Unpacker\PropertyValueUnpacker::class] = static fn (ContainerInterface $c): Unpacker\PropertyValueUnpacker => new Unpacker\PropertyValueUnpacker();
         $result[Unpacker\UnitUnpacker::class] = static fn (ContainerInterface $c): Unpacker\UnitUnpacker => new Unpacker\UnitUnpacker(
             $c->get(DalAccess::class),
             $c->get(Translator::class)
