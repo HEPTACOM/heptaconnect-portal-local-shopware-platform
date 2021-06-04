@@ -5,7 +5,6 @@ namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver;
 
 use Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Category;
-use Heptacom\HeptaConnect\Portal\Base\Mapping\Contract\MappingInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiveContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiverContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
@@ -27,12 +26,11 @@ class CategoryReceiver extends ReceiverContract
      * @param Category $entity
      */
     protected function run(
-        MappingInterface $mapping,
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $categoryId = $mapping->getExternalId();
-        $container = $context->getContainer($mapping);
+        $categoryId = $entity->getPrimaryKey();
+        $container = $context->getContainer();
         /** @var Translator $translator */
         $translator = $container->get(Translator::class);
         /** @var DalAccess $dalAccess */

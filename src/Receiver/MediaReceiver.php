@@ -7,7 +7,6 @@ use Heptacom\HeptaConnect\Core\Storage\Contract\DenormalizerInterface;
 use Heptacom\HeptaConnect\Core\Storage\NormalizationRegistry;
 use Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\Media;
-use Heptacom\HeptaConnect\Portal\Base\Mapping\Contract\MappingInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiveContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiverContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
@@ -31,11 +30,10 @@ class MediaReceiver extends ReceiverContract
      * @param Media $entity
      */
     protected function run(
-        MappingInterface $mapping,
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $container = $context->getContainer($mapping);
+        $container = $context->getContainer();
         /** @var DalAccess $dalAccess */
         $dalAccess = $container->get(DalAccess::class);
         $swContext = $dalAccess->getContext();

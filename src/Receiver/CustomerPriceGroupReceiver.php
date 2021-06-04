@@ -5,7 +5,6 @@ namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver;
 
 use Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Customer\CustomerPriceGroup;
-use Heptacom\HeptaConnect\Portal\Base\Mapping\Contract\MappingInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiveContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiverContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
@@ -24,14 +23,12 @@ class CustomerPriceGroupReceiver extends ReceiverContract
      * @param CustomerPriceGroup $entity
      */
     protected function run(
-        MappingInterface $mapping,
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
         $primaryKey = PrimaryKeyGenerator::generatePrimaryKey($entity, '56636118-4306-44fe-9ebc-4584e9c706af') ?? Uuid::uuid5('7bde4c47-bc51-45db-a1b7-093c60170a79', $entity->getCode())->getHex();
         $entity->setPrimaryKey($primaryKey);
-        $mapping->setExternalId($primaryKey);
-        $container = $context->getContainer($mapping);
+        $container = $context->getContainer();
         /** @var DalAccess $dalAccess */
         $dalAccess = $container->get(DalAccess::class);
 
@@ -40,6 +37,6 @@ class CustomerPriceGroupReceiver extends ReceiverContract
             'name' => $entity->getCode(),
         ]], $dalAccess->getContext());
 
-        StorageHelper::addCustomerPriceGroupTagId($primaryKey, $context->getStorage($mapping));
+        StorageHelper::addCustomerPriceGroupTagId($primaryKey, $context->getStorage());
     }
 }

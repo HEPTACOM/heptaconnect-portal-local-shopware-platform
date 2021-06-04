@@ -7,7 +7,6 @@ use Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Category;
 use Heptacom\HeptaConnect\Portal\Base\Emission\Contract\EmitContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Emission\Contract\EmitterContract;
-use Heptacom\HeptaConnect\Portal\Base\Mapping\Contract\MappingInterface;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Shopware\Core\Content\Category\Aggregate\CategoryTranslation\CategoryTranslationCollection;
 use Shopware\Core\Content\Category\CategoryEntity;
@@ -23,13 +22,13 @@ class CategoryEmitter extends EmitterContract
     }
 
     protected function run(
-        MappingInterface $mapping,
+        string $externalId,
         EmitContextInterface $context
     ): ?DatasetEntityContract {
         $container = $context->getContainer();
         /** @var DalAccess $dalAccess */
         $dalAccess = $container->get(DalAccess::class);
-        $source = $dalAccess->read('category', [$mapping->getExternalId()], ['translations.language.locale'])->first();
+        $source = $dalAccess->read('category', [$externalId], ['translations.language.locale'])->first();
 
         if (!$source instanceof CategoryEntity) {
             return null;

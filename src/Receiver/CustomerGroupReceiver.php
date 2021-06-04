@@ -5,7 +5,6 @@ namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver;
 
 use Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Customer\CustomerGroup;
-use Heptacom\HeptaConnect\Portal\Base\Mapping\Contract\MappingInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiveContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiverContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
@@ -25,12 +24,11 @@ class CustomerGroupReceiver extends ReceiverContract
      * @param CustomerGroup $entity
      */
     protected function run(
-        MappingInterface $mapping,
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
         $id = $entity->getPrimaryKey();
-        $container = $context->getContainer($mapping);
+        $container = $context->getContainer();
         /** @var Translator $translator */
         $translator = $container->get(Translator::class);
         /** @var DalAccess $dalAccess */

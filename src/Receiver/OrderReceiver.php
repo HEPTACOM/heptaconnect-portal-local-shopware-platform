@@ -8,7 +8,6 @@ use Heptacom\HeptaConnect\Dataset\Ecommerce\Order\LineItem;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Order\LineItem\Product as LineItemProduct;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Order\Order;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Order\OrderState;
-use Heptacom\HeptaConnect\Portal\Base\Mapping\Contract\MappingInterface;
 use Heptacom\HeptaConnect\Portal\Base\Portal\Contract\PortalStorageInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiveContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiverContract;
@@ -43,7 +42,6 @@ class OrderReceiver extends ReceiverContract
      * @param Order $entity
      */
     protected function run(
-        MappingInterface $mapping,
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
@@ -53,7 +51,7 @@ class OrderReceiver extends ReceiverContract
             throw new \Exception('Unsupported order creation. Map first to an existing order to update'); // TODO: check types
         }
 
-        $container = $context->getContainer($mapping);
+        $container = $context->getContainer();
         /** @var DalAccess $dalAccess */
         $dalAccess = $container->get(DalAccess::class);
         $dalContext = $dalAccess->getContext();
@@ -93,12 +91,12 @@ class OrderReceiver extends ReceiverContract
         $sourceLineItems = iterable_to_array($entity->getLineItems());
         $targetLineItems = $order->getLineItems()->getElements();
 
-        $this->saveOrderState($context->getStorage($mapping), $entity);
+        $this->saveOrderState($context->getStorage(), $entity);
 
         self::updateLineItems(
             $sourceLineItems,
             $targetLineItems,
-            $dalAccess->repository( 'order_line_item'),
+            $dalAccess->repository('order_line_item'),
             $dalAccess,
             $dalContext,
             $entity
@@ -124,7 +122,7 @@ class OrderReceiver extends ReceiverContract
             }
         }
 
-        self::updateOrderPrice($entity, $order, $dalAccess->repository( 'order'), $dalContext);
+        self::updateOrderPrice($entity, $order, $dalAccess->repository('order'), $dalContext);
     }
 
     protected function saveOrderState(PortalStorageInterface $portalStorage, Order $order): void
@@ -136,7 +134,7 @@ class OrderReceiver extends ReceiverContract
     {
         $order->setPrimaryKey($order->getPrimaryKey() ?? RamseyUuid::uuid5('3c8352ab-0fb8-4006-bff6-f8133676644e', $order->getNumber())->getHex());
 
-        return 'OrderHashKey:'.$order->getPrimaryKey();
+        return 'OrderHashKey:' . $order->getPrimaryKey();
     }
 
     private function getCurrentOrderHash(Order $order): string
