@@ -7,7 +7,6 @@ use Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Address\Address;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Address\Salutation;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Customer\Customer;
-use Heptacom\HeptaConnect\Portal\Base\Mapping\Contract\MappingInterface;
 use Heptacom\HeptaConnect\Portal\Base\Portal\Contract\PortalStorageInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiveContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiverContract;
@@ -38,11 +37,10 @@ class CustomerReceiver extends ReceiverContract
      * @param Customer $entity
      */
     protected function run(
-        MappingInterface $mapping,
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $container = $context->getContainer($mapping);
+        $container = $context->getContainer();
         /** @var ExistingIdentifierCache $existingIdentifierCache */
         $existingIdentifierCache = $container->get(ExistingIdentifierCache::class);
         /** @var DalAccess $dalAccess */
@@ -62,13 +60,12 @@ class CustomerReceiver extends ReceiverContract
 
             $this->createCustomer(
                 $entity,
-                $mapping,
                 $customerRepository,
                 $dalAccess->repository('salutation'),
                 $dalAccess->repository('country'),
                 $dalAccess->repository('sales_channel'),
                 $dalContext,
-                $context->getStorage($mapping),
+                $context->getStorage(),
                 $existingIdentifierCache,
                 $customerSalesChannelStrategy,
                 $context
@@ -76,11 +73,10 @@ class CustomerReceiver extends ReceiverContract
         } else {
             $this->updateCustomer(
                 $entity,
-                $mapping,
                 $customerRepository,
                 $dalAccess->repository('customer_tag'),
                 $dalContext,
-                $context->getStorage($mapping),
+                $context->getStorage(),
                 $existingIdentifierCache,
                 $customerSalesChannelStrategy,
                 $context
@@ -90,7 +86,6 @@ class CustomerReceiver extends ReceiverContract
 
     protected function createCustomer(
         Customer $entity,
-        MappingInterface $mapping,
         EntityRepositoryInterface $customerRepository,
         EntityRepositoryInterface $salutationRepository,
         EntityRepositoryInterface $countryRepository,
@@ -110,7 +105,7 @@ class CustomerReceiver extends ReceiverContract
 
         $customer = [
             'id' => $entity->getPrimaryKey(),
-            'salesChannelId' => $customerSalesChannelStrategy->getCustomerSalesChannelId($entity, $mapping, $receiveContext),
+            'salesChannelId' => $customerSalesChannelStrategy->getCustomerSalesChannelId($entity, $receiveContext),
             'groupId' => $customerGroupId,
             'languageId' => $existingIdentifierCache->getLanguageId(self::getLocale($entity)), // TODO use enhancer
             'customerNumber' => $entity->getNumber(),
@@ -197,7 +192,6 @@ class CustomerReceiver extends ReceiverContract
 
     protected function updateCustomer(
         Customer $entity,
-        MappingInterface $mapping,
         EntityRepositoryInterface $customerRepository,
         EntityRepositoryInterface $customerTagRepository,
         Context $context,
@@ -236,7 +230,7 @@ class CustomerReceiver extends ReceiverContract
         ];
 
         if ($existingCustomer->getSalesChannelId() === Defaults::SALES_CHANNEL) {
-            $customer['salesChannelId'] = $customerSalesChannelStrategy->getCustomerSalesChannelId($entity, $mapping, $receiveContext);
+            $customer['salesChannelId'] = $customerSalesChannelStrategy->getCustomerSalesChannelId($entity, $receiveContext);
         }
 
         if ($entity->getCustomerGroup() && $entity->getCustomerGroup()->getPrimaryKey()) {

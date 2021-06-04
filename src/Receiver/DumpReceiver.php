@@ -7,7 +7,6 @@ use Heptacom\HeptaConnect\Core\Storage\Contract\DenormalizerInterface;
 use Heptacom\HeptaConnect\Core\Storage\NormalizationRegistry;
 use Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\Media;
-use Heptacom\HeptaConnect\Portal\Base\Mapping\Contract\MappingInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiveContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiverContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\PrimaryKeyGenerator;
@@ -32,14 +31,13 @@ class DumpReceiver extends ReceiverContract
     }
 
     protected function run(
-        MappingInterface $mapping,
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $container = $context->getContainer($mapping);
+        $container = $context->getContainer();
         $id = PrimaryKeyGenerator::generatePrimaryKey($entity, '0ff4e0c2-fc66-4c40-a572-66dee8195f09') ?? Uuid::uuid4()->getHex();
 
-        $className = \basename(\str_replace('\\', '/', $mapping->getDatasetEntityClassName()));
+        $className = \basename(\str_replace('\\', '/', $this->supports()));
         $dumpDir = __DIR__.'/../../__dump/'.$className.'/';
 
         if (!\is_dir($dumpDir) && !@\mkdir($dumpDir, 0777, true)) {
@@ -64,7 +62,7 @@ class DumpReceiver extends ReceiverContract
             }
         }
 
-        $mapping->setExternalId($id);
+        $entity->setPrimaryKey($id);
     }
 
     /**
@@ -77,7 +75,9 @@ class DumpReceiver extends ReceiverContract
         }
 
         if ($entity->hasAttached(Media::class)) {
-            yield from static::getMedias($entity->getAttachment(Media::class), $normalizationRegistry);
+            /** @var Media $media */
+            $media = $entity->getAttachment(Media::class);
+            yield from static::getMedias($media, $normalizationRegistry);
         }
     }
 

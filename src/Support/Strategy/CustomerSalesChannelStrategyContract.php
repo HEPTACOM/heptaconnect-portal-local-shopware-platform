@@ -12,7 +12,6 @@ class CustomerSalesChannelStrategyContract
 {
     public function getCustomerSalesChannelId(
         Customer $customer,
-        MappingInterface $mapping,
         ReceiveContextInterface $context
     ): string {
         return Defaults::SALES_CHANNEL;

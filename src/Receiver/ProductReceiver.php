@@ -5,7 +5,6 @@ namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver;
 
 use Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Product;
-use Heptacom\HeptaConnect\Portal\Base\Mapping\Contract\MappingInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiveContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiverContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
@@ -24,14 +23,13 @@ class ProductReceiver extends ReceiverContract
      * @param Product $entity
      */
     protected function run(
-        MappingInterface $mapping,
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $container = $context->getContainer($mapping);
+        $container = $context->getContainer();
         /** @var DalAccess $dalAccess */
         $dalAccess = $container->get(DalAccess::class);
-        $productRepository = $dalAccess->repository( 'product');
+        $productRepository = $dalAccess->repository('product');
         $dalContext = $dalAccess->getContext();
         /** @var ProductUnpacker $unpacker */
         $unpacker = $container->get(ProductUnpacker::class);

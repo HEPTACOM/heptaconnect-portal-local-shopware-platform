@@ -24,7 +24,6 @@ use Heptacom\HeptaConnect\Dataset\Ecommerce\PaymentMethod\PaymentMethod;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Product;
 use Heptacom\HeptaConnect\Portal\Base\Emission\Contract\EmitContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Emission\Contract\EmitterContract;
-use Heptacom\HeptaConnect\Portal\Base\Mapping\Contract\MappingInterface;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Packer\CustomerPacker;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Packer\OrderStatePacker;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
@@ -53,7 +52,7 @@ class OrderEmitter extends EmitterContract
         return Order::class;
     }
 
-    protected function run(MappingInterface $mapping, EmitContextInterface $context): ?DatasetEntityContract
+    protected function run(string $externalId, EmitContextInterface $context): ?DatasetEntityContract
     {
         $container = $context->getContainer();
         /** @var DalAccess $dalAccess */
@@ -61,7 +60,7 @@ class OrderEmitter extends EmitterContract
         /** @var CustomerPacker $customerPacker */
         $customerPacker = $container->get(CustomerPacker::class);
 
-        $source = $dalAccess->read('order', [$mapping->getExternalId()], [
+        $source = $dalAccess->read('order', [$externalId], [
                 'orderCustomer',
                 'currency',
                 'addresses.salutation',
