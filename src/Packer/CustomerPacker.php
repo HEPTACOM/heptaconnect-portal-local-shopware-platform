@@ -37,6 +37,7 @@ class CustomerPacker
     {
         $sourceCustomer = $this->dalAccess->read('customer', [$customerId], [
                 'language.locale',
+                'tags',
                 'salutation',
                 'addresses.salutation',
                 'addresses.country',
