@@ -47,12 +47,10 @@ class ProductEmitter extends EmitterContract
                 $requestStack->push($request);
             }
 
-            $source = $dalAccess->getContext()->disableCache(static function (Context $c) use ($mapping, $dalAccess): ?ProductEntity {
-                return $dalAccess->read('product', [$externalId], [
+            $source = $dalAccess->read('product', [$mapping->getExternalId()], [
                     'translations.language.locale',
                     'cover',
-                ], $c)->first();
-            });
+                ])->first();
         } finally {
             if ($request instanceof Request) {
                 $requestStack->pop();

@@ -19,9 +19,7 @@ abstract class ShopwareExplorer extends ExplorerContract
         $dalAccess = $container->get(DalAccess::class);
         $repository = $dalAccess->repository($this->getRepositoryName());
         /** @var RepositoryIterator $iterator */
-        $iterator = $dalAccess->getContext()->disableCache(function (Context $dalContext) use ($repository) {
-            return new RepositoryIterator($repository, clone $dalContext);
-        });
+        $iterator = new RepositoryIterator($repository, clone $dalAccess->getContext());
 
         while (!\is_null($entities = $iterator->fetch())) {
             /** @var Entity $element */

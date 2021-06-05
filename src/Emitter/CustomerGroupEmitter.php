@@ -25,9 +25,7 @@ class CustomerGroupEmitter extends EmitterContract
         $container = $context->getContainer();
         /** @var DalAccess $dalAccess */
         $dalAccess = $container->get(DalAccess::class);
-        $source = $dalAccess->getContext()->disableCache(function (Context $context) use ($mapping, $dalAccess): ?CustomerGroupEntity {
-            return $dalAccess->read('customer_group', [$externalId], [], $context)->first();
-        });
+        $source =  $dalAccess->read('customer_group', [$mapping->getExternalId()])->first();
 
         if (!$source instanceof CustomerGroupEntity) {
             throw new \Exception(\sprintf('Customer group with id: %s not found.', $externalId));
