@@ -29,6 +29,7 @@ class UnitUnpacker
     {
         $id = $source->getPrimaryKey();
         $defaultName = $source->getName()->getFallback();
+        $name = null;
 
         $translations = [];
 
@@ -52,7 +53,7 @@ class UnitUnpacker
 
         if ($id === null) {
             $unitCriteria = (new Criteria())
-                ->addFilter(new EqualsFilter('name', $name))
+                ->addFilter(new EqualsFilter('name', $name ?? $defaultName))
                 ->setLimit(1);
 
             $id = $this->dalAccess
