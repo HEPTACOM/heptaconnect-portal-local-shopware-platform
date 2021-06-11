@@ -14,6 +14,7 @@ use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\ExistingIdentifie
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\StateMachineTransitionWalker;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\Strategy\CustomerSalesChannelStrategyContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\Translator;
+use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\MediaUnpacker;
 use Psr\Container\ContainerInterface;
 use Shopware\Core\Content\Media\File\FileSaver;
 use Shopware\Core\Content\Media\MediaService;
@@ -137,11 +138,14 @@ class Portal extends PortalContract
         $result[Packer\OrderStatePacker::class] = new Packer\OrderStatePacker();
         $result[CustomerSalesChannelStrategyContract::class] = static fn (ContainerInterface $c) => new CustomerSalesChannelStrategyContract();
 
-        $result[Unpacker\ManufacturerUnpacker::class] = static fn (ContainerInterface $c): Unpacker\ManufacturerUnpacker => new Unpacker\ManufacturerUnpacker();
         $result[Unpacker\MediaUnpacker::class] = static fn (ContainerInterface $c): Unpacker\MediaUnpacker => new Unpacker\MediaUnpacker(
             $c->get(MediaService::class),
             $c->get(NormalizationRegistry::class),
             $c->get(DalAccess::class)
+        );
+        $result[Unpacker\ManufacturerUnpacker::class] = static fn (ContainerInterface $c): Unpacker\ManufacturerUnpacker => new Unpacker\ManufacturerUnpacker(
+            $c->get(ExistingIdentifierCache::class),
+            $c->get(MediaUnpacker::class),
         );
         $result[Unpacker\ProductUnpacker::class] = static fn (ContainerInterface $c): Unpacker\ProductUnpacker => new Unpacker\ProductUnpacker(
             $c->get(DalAccess::class),
