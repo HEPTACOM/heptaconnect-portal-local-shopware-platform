@@ -124,6 +124,7 @@ class ProductUnpacker
             'parentId' => null,
             'active' => $active,
             'productNumber' => $source->getNumber(),
+            'ean' => $source->getGtin(),
             'stock' => (int) $source->getInventory(),
             'minPurchase' => 1,
             'purchaseSteps' => (int) \max($source->getPurchaseQuantity() ?? 1, 1),
