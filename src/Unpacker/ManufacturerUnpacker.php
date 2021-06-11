@@ -29,11 +29,13 @@ class ManufacturerUnpacker
         $targetManufacturerId = $source->getPrimaryKey() ?? Uuid::randomHex();
         $source->setPrimaryKey($targetManufacturerId);
 
+        $media = $this->getManufacturerImage($source);
+
         // TODO translations
         return [
             'id' => $targetManufacturerId,
             'name' => $source->getName()->getFallback(),
-            'media' => $this->getManufacturerImage($source),
+            ($media === null ? 'mediaId' : 'media') => $media,
         ];
     }
 
