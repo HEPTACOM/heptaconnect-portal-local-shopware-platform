@@ -53,7 +53,12 @@
             "Heptacom\\HeptaConnect\\Portal\\LocalShopwarePlatform\\Test\\": "test/"
         }
     },
-    "minimum-stability": "stable",
+    "repositories": {
+        "heptaconnect-sources": {
+            "type": "path",
+            "url": "../**"
+        }
+    },
     "extra": {
         "heptaconnect": {
             "portals": [
