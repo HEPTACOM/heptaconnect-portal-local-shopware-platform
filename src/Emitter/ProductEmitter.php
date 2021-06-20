@@ -25,6 +25,16 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class ProductEmitter extends EmitterContract
 {
+    private DalAccess $dal;
+
+    private RequestStack $requestStack;
+
+    public function __construct(DalAccess $dal, RequestStack $requestStack)
+    {
+        $this->dal = $dal;
+        $this->requestStack = $requestStack;
+    }
+
     public function supports(): string
     {
         return Product::class;
@@ -34,26 +44,21 @@ class ProductEmitter extends EmitterContract
         string $externalId,
         EmitContextInterface $context
     ): ?DatasetEntityContract {
-        $container = $context->getContainer();
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        $salesChannelRepository = $dalAccess->repository('sales_channel');
-        $request = $this->prepareRequest($salesChannelRepository, $dalAccess->getContext());
-        /** @var RequestStack $requestStack */
-        $requestStack = $container->get(RequestStack::class);
+        $salesChannelRepository = $this->dal->repository('sales_channel');
+        $request = $this->prepareRequest($salesChannelRepository, $this->dal->getContext());
 
         try {
             if ($request instanceof Request) {
-                $requestStack->push($request);
+                $this->requestStack->push($request);
             }
 
-            $source = $dalAccess->read('product', [$mapping->getExternalId()], [
+            $source = $this->dal->read('product', [$externalId], [
                     'translations.language.locale',
                     'cover',
                 ])->first();
         } finally {
             if ($request instanceof Request) {
-                $requestStack->pop();
+                $this->requestStack->pop();
             }
         }
 

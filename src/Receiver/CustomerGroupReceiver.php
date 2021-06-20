@@ -15,6 +15,16 @@ use Shopware\Core\Defaults;
 
 class CustomerGroupReceiver extends ReceiverContract
 {
+    private DalAccess $dal;
+
+    private Translator $translator;
+
+    public function __construct(DalAccess $dal, Translator $translator)
+    {
+        $this->dal = $dal;
+        $this->translator = $translator;
+    }
+
     public function supports(): string
     {
         return CustomerGroup::class;
@@ -28,33 +38,28 @@ class CustomerGroupReceiver extends ReceiverContract
         ReceiveContextInterface $context
     ): void {
         $id = $entity->getPrimaryKey();
-        $container = $context->getContainer();
-        /** @var Translator $translator */
-        $translator = $container->get(Translator::class);
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        $repository = $dalAccess->repository('customer_group');
-        $swContext = $dalAccess->getContext();
+        $repository = $this->dal->repository('customer_group');
+        $swContext = $this->dal->getContext();
 
         $defaultName = $entity->getName();
         $translations[Defaults::LANGUAGE_SYSTEM] = [
             'name' => $defaultName,
         ];
 
-        if (!$dalAccess->idExists('customer_group', $id)) {
+        if (!$this->dal->idExists('customer_group', $id)) {
             $id ??= PrimaryKeyGenerator::generatePrimaryKey($entity, 'b72df67c-426d-42e1-846c-10f7815c1761') ?? Uuid::uuid5('7ead4bd5-1d7c-4a5e-be6b-6f5f709dfb3c', $entity->getCode())->getHex();
 
             $repository->create([[
                 'id' => $id,
                 'display_gross' => true,
-                'translations' => $translator->exchangeLocaleKeysToLanguageKeys($translations),
+                'translations' => $this->translator->exchangeLocaleKeysToLanguageKeys($translations),
             ]], $swContext);
 
             $entity->setPrimaryKey($id);
         } else {
             $repository->update([[
                 'id' => $id,
-                'translations' => $translator->exchangeLocaleKeysToLanguageKeys($translations),
+                'translations' => $this->translator->exchangeLocaleKeysToLanguageKeys($translations),
             ]], $swContext);
         }
     }

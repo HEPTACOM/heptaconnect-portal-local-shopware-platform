@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<container
+    xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
+>
+    <services>
+        <prototype
+            exclude="../../src/{Core,Support/UnwalkablePathException.php}"
+            namespace="Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\"
+            resource="../../src/*"
+        />
+
+        <service
+            class="Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface"
+            id="state_machine_state.repository"
+        >
+            <factory
+                method="repository"
+                service="Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess"
+            />
+            <argument type="string">state_machine_state</argument>
+        </service>
+
+        <service id="Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess">
+            <argument id="shopware_service_container" type="service"/>
+        </service>
+        <service id="Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\StateMachineTransitionWalker">
+            <argument id="Shopware\Core\System\StateMachine\StateMachineRegistry" type="service"/>
+            <argument id="Shopware\Core\Framework\DataAbstractionLayer\DefinitionInstanceRegistry" type="service"/>
+            <argument id="state_machine_state.repository" type="service"/>
+        </service>
+    </services>
+</container>

@@ -11,6 +11,13 @@ use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Packer\CustomerPacker;
 
 class CustomerEmitter extends EmitterContract
 {
+    private CustomerPacker $customerPacker;
+
+    public function __construct(CustomerPacker $customerPacker)
+    {
+        $this->customerPacker = $customerPacker;
+    }
+
     public function supports(): string
     {
         return Customer::class;
@@ -20,10 +27,6 @@ class CustomerEmitter extends EmitterContract
         string $externalId,
         EmitContextInterface $context
     ): ?DatasetEntityContract {
-        $container = $context->getContainer();
-        /** @var CustomerPacker $customerPacker */
-        $customerPacker = $container->get(CustomerPacker::class);
-
-        return $customerPacker->pack($externalId, $context->getStorage());
+        return $this->customerPacker->pack($externalId, $context->getStorage());
     }
 }

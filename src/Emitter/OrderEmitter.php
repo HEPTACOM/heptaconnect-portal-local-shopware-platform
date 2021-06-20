@@ -47,6 +47,19 @@ use Shopware\Core\System\Currency\CurrencyEntity;
 
 class OrderEmitter extends EmitterContract
 {
+    private DalAccess $dal;
+
+    private CustomerPacker $customerPacker;
+
+    private OrderStatePacker $orderStatePacker;
+
+    public function __construct(DalAccess $dal, CustomerPacker $customerPacker, OrderStatePacker $orderStatePacker)
+    {
+        $this->dal = $dal;
+        $this->customerPacker = $customerPacker;
+        $this->orderStatePacker = $orderStatePacker;
+    }
+
     public function supports(): string
     {
         return Order::class;
@@ -54,13 +67,7 @@ class OrderEmitter extends EmitterContract
 
     protected function run(string $externalId, EmitContextInterface $context): ?DatasetEntityContract
     {
-        $container = $context->getContainer();
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        /** @var CustomerPacker $customerPacker */
-        $customerPacker = $container->get(CustomerPacker::class);
-
-        $source = $dalAccess->read('order', [$externalId], [
+        $source = $this->dal->read('order', [$externalId], [
                 'orderCustomer',
                 'currency',
                 'addresses.salutation',
@@ -91,7 +98,7 @@ class OrderEmitter extends EmitterContract
 
         $targetBillingAddress = $this->getAddress($sourceBillingAddress);
         $targetShippingAddress = $this->getAddress($sourceShippingAddress);
-        $targetCustomer = $customerPacker->pack($source->getOrderCustomer()->getCustomerId(), $context->getStorage());
+        $targetCustomer = $this->customerPacker->pack($source->getOrderCustomer()->getCustomerId(), $context->getStorage());
         $targetCustomer->setAddresses(new AddressCollection([
             $targetBillingAddress,
             $targetShippingAddress,
@@ -102,9 +109,7 @@ class OrderEmitter extends EmitterContract
         $target->setPrimaryKey($source->getId());
         $target->setNumber($source->getOrderNumber());
 
-        /** @var OrderStatePacker $orderStatePacker */
-        $orderStatePacker = $container->get(OrderStatePacker::class);
-        $target->setOrderState($orderStatePacker->pack($source->getStateMachineState()->getTechnicalName()));
+        $target->setOrderState($this->orderStatePacker->pack($source->getStateMachineState()->getTechnicalName()));
 
         switch ($sourceTransaction->getStateMachineState()->getTechnicalName()) {
             case OrderTransactionStates::STATE_OPEN:

@@ -16,6 +16,13 @@ use Shopware\Core\System\Locale\LocaleEntity;
 
 class CategoryEmitter extends EmitterContract
 {
+    private DalAccess $dal;
+
+    public function __construct(DalAccess $dal)
+    {
+        $this->dal = $dal;
+    }
+
     public function supports(): string
     {
         return Category::class;
@@ -25,10 +32,7 @@ class CategoryEmitter extends EmitterContract
         string $externalId,
         EmitContextInterface $context
     ): ?DatasetEntityContract {
-        $container = $context->getContainer();
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        $source = $dalAccess->read('category', [$externalId], ['translations.language.locale'])->first();
+        $source = $this->dal->read('category', [$externalId], ['translations.language.locale'])->first();
 
         if (!$source instanceof CategoryEntity) {
             return null;

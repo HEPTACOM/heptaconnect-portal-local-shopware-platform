@@ -14,6 +14,16 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 
 class ProductReceiver extends ReceiverContract
 {
+    private DalAccess $dal;
+
+    private ProductUnpacker $productUnpacker;
+
+    public function __construct(DalAccess $dal, ProductUnpacker $productUnpacker)
+    {
+        $this->dal = $dal;
+        $this->productUnpacker = $productUnpacker;
+    }
+
     public function supports(): string
     {
         return Product::class;
@@ -26,16 +36,11 @@ class ProductReceiver extends ReceiverContract
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $container = $context->getContainer();
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        $productRepository = $dalAccess->repository('product');
-        $dalContext = $dalAccess->getContext();
-        /** @var ProductUnpacker $unpacker */
-        $unpacker = $container->get(ProductUnpacker::class);
-        $target = $unpacker->unpack($entity);
+        $productRepository = $this->dal->repository('product');
+        $dalContext = $this->dal->getContext();
+        $target = $this->productUnpacker->unpack($entity);
         $criteria = (new Criteria())->addFilter(new EqualsFilter('productId', $target['id']));
-        $productPriceRepository = $dalAccess->repository('product_price');
+        $productPriceRepository = $this->dal->repository('product_price');
         $deleteProductPriceIds = $productPriceRepository->searchIds($criteria, $dalContext)->getIds();
         $deleteProductPriceIds = \array_map(fn (string $id) => ['id' => $id], $deleteProductPriceIds);
 

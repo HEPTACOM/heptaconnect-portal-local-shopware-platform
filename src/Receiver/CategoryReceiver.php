@@ -17,6 +17,16 @@ use Shopware\Core\Framework\Uuid\Uuid;
 
 class CategoryReceiver extends ReceiverContract
 {
+    private DalAccess $dal;
+
+    private Translator $translator;
+
+    public function __construct(DalAccess $dal, Translator $translator)
+    {
+        $this->dal = $dal;
+        $this->translator = $translator;
+    }
+
     public function supports(): string
     {
         return Category::class;
@@ -30,13 +40,8 @@ class CategoryReceiver extends ReceiverContract
         ReceiveContextInterface $context
     ): void {
         $categoryId = $entity->getPrimaryKey();
-        $container = $context->getContainer();
-        /** @var Translator $translator */
-        $translator = $container->get(Translator::class);
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        $swContext = $dalAccess->getContext();
-        $categoryRepository = $dalAccess->repository('category');
+        $swContext = $this->dal->getContext();
+        $categoryRepository = $this->dal->repository('category');
 
         $categoryParent = $entity->getParent();
         $translations = [];
@@ -57,22 +62,22 @@ class CategoryReceiver extends ReceiverContract
 
         $parentId = $categoryParent ? $categoryParent->getPrimaryKey() : null;
 
-        if (!$dalAccess->idExists('category', $parentId)) {
+        if (!$this->dal->idExists('category', $parentId)) {
             $parentId = null;
         }
 
-        if (!$dalAccess->idExists('category', $categoryId)) {
+        if (!$this->dal->idExists('category', $categoryId)) {
             $categoryId ??= PrimaryKeyGenerator::generatePrimaryKey($entity, 'b3acb4c2-a8e2-44a8-9eb1-a6c56e628ec5') ?? Uuid::randomHex();
 
             $categoryRepository->create([[
                 'id' => $categoryId,
                 'type' => $parentId ? CategoryDefinition::TYPE_PAGE : CategoryDefinition::TYPE_FOLDER,
                 'parentId' => $parentId,
-                'translations' => $translator->exchangeLocaleKeysToLanguageKeys($translations),
+                'translations' => $this->translator->exchangeLocaleKeysToLanguageKeys($translations),
             ]], $swContext);
             $entity->setPrimaryKey($categoryId);
         } else {
-            $existingCategory = $dalAccess->read('category', [$categoryId])->first();
+            $existingCategory = $this->dal->read('category', [$categoryId])->first();
 
             if ($existingCategory instanceof CategoryEntity) {
                 $parentId ??= $existingCategory->getParentId();
@@ -81,7 +86,7 @@ class CategoryReceiver extends ReceiverContract
             $payload = [
                 'id' => $categoryId,
                 'parentId' => $parentId,
-                'translations' => $translator->exchangeLocaleKeysToLanguageKeys($translations),
+                'translations' => $this->translator->exchangeLocaleKeysToLanguageKeys($translations),
             ];
 
             $categoryRepository->update([$payload], $swContext);

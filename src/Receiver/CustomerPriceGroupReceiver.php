@@ -14,6 +14,13 @@ use Ramsey\Uuid\Uuid;
 
 class CustomerPriceGroupReceiver extends ReceiverContract
 {
+    private DalAccess $dal;
+
+    public function __construct(DalAccess $dal)
+    {
+        $this->dal = $dal;
+    }
+
     public function supports(): string
     {
         return CustomerPriceGroup::class;
@@ -28,14 +35,11 @@ class CustomerPriceGroupReceiver extends ReceiverContract
     ): void {
         $primaryKey = PrimaryKeyGenerator::generatePrimaryKey($entity, '56636118-4306-44fe-9ebc-4584e9c706af') ?? Uuid::uuid5('7bde4c47-bc51-45db-a1b7-093c60170a79', $entity->getCode())->getHex();
         $entity->setPrimaryKey($primaryKey);
-        $container = $context->getContainer();
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
 
-        $dalAccess->repository('tag')->upsert([[
+        $this->dal->repository('tag')->upsert([[
             'id' => $primaryKey,
             'name' => $entity->getCode(),
-        ]], $dalAccess->getContext());
+        ]], $this->dal->getContext());
 
         StorageHelper::addCustomerPriceGroupTagId($primaryKey, $context->getStorage());
     }

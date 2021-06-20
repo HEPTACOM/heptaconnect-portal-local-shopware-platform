@@ -9,10 +9,16 @@ use Heptacom\HeptaConnect\Portal\Base\Emission\Contract\EmitContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Emission\Contract\EmitterContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerGroup\CustomerGroupEntity;
-use Shopware\Core\Framework\Context;
 
 class CustomerGroupEmitter extends EmitterContract
 {
+    private DalAccess $dal;
+
+    public function __construct(DalAccess $dal)
+    {
+        $this->dal = $dal;
+    }
+
     public function supports(): string
     {
         return CustomerGroup::class;
@@ -22,10 +28,7 @@ class CustomerGroupEmitter extends EmitterContract
         string $externalId,
         EmitContextInterface $context
     ): ?DatasetEntityContract {
-        $container = $context->getContainer();
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        $source =  $dalAccess->read('customer_group', [$mapping->getExternalId()])->first();
+        $source = $this->dal->read('customer_group', [$externalId])->first();
 
         if (!$source instanceof CustomerGroupEntity) {
             throw new \Exception(\sprintf('Customer group with id: %s not found.', $externalId));
