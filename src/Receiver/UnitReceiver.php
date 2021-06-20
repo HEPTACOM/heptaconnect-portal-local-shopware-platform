@@ -12,6 +12,16 @@ use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\UnitUnpacker;
 
 class UnitReceiver extends ReceiverContract
 {
+    private DalAccess $dal;
+
+    private UnitUnpacker $unitUnpacker;
+
+    public function __construct(DalAccess $dal, UnitUnpacker $unitUnpacker)
+    {
+        $this->dal = $dal;
+        $this->unitUnpacker = $unitUnpacker;
+    }
+
     public function supports(): string
     {
         return Unit::class;
@@ -24,12 +34,6 @@ class UnitReceiver extends ReceiverContract
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $container = $context->getContainer();
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        /** @var UnitUnpacker $unpacker */
-        $unpacker = $container->get(UnitUnpacker::class);
-
-        $dalAccess->repository('unit')->upsert([$unpacker->unpack($entity)], $dalAccess->getContext());
+        $this->dal->repository('unit')->upsert([$this->unitUnpacker->unpack($entity)], $this->dal->getContext());
     }
 }

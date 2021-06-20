@@ -3,26 +3,29 @@ declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver;
 
-use Heptacom\HeptaConnect\Core\Storage\Contract\DenormalizerInterface;
-use Heptacom\HeptaConnect\Core\Storage\NormalizationRegistry;
 use Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\Media;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiveContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiverContract;
+use Heptacom\HeptaConnect\Portal\Base\Serialization\Contract\DenormalizerInterface;
+use Heptacom\HeptaConnect\Portal\Base\Serialization\Contract\NormalizationRegistryContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\PrimaryKeyGenerator;
 use Psr\Http\Message\StreamInterface;
 use Ramsey\Uuid\Uuid;
 
-class DumpReceiver extends ReceiverContract
+abstract class DumpReceiver extends ReceiverContract
 {
+    private NormalizationRegistryContract $normalizationRegistry;
+
     private string $supports;
 
     /**
      * @var class-string<\Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract> $supports
      */
-    public function __construct(string $supports)
+    public function __construct(NormalizationRegistryContract $normalizationRegistry, string $supports)
     {
         $this->supports = $supports;
+        $this->normalizationRegistry = $normalizationRegistry;
     }
 
     public function supports(): string
@@ -34,7 +37,6 @@ class DumpReceiver extends ReceiverContract
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $container = $context->getContainer();
         $id = PrimaryKeyGenerator::generatePrimaryKey($entity, '0ff4e0c2-fc66-4c40-a572-66dee8195f09') ?? Uuid::uuid4()->getHex();
 
         $className = \basename(\str_replace('\\', '/', $this->supports()));
@@ -46,11 +48,9 @@ class DumpReceiver extends ReceiverContract
 
         $content = \json_encode($entity, \JSON_PRETTY_PRINT | \JSON_PARTIAL_OUTPUT_ON_ERROR | \JSON_UNESCAPED_SLASHES);
         \file_put_contents($dumpDir.$id.'.json', $content);
-        /** @var NormalizationRegistry $normalizationRegistry */
-        $normalizationRegistry = $container->get(NormalizationRegistry::class);
 
-        foreach (self::getMedias($entity, $normalizationRegistry) as $mediaIndex => $media) {
-            $mediaStream = self::getMediaStream($media, $normalizationRegistry);
+        foreach ($this->getMedias($entity) as $mediaIndex => $media) {
+            $mediaStream = $this->getMediaStream($media);
 
             if ($mediaStream instanceof StreamInterface) {
                 $mediaDir = $dumpDir.'media/';
@@ -68,7 +68,7 @@ class DumpReceiver extends ReceiverContract
     /**
      * @return iterable<Media>|Media[]
      */
-    private static function getMedias(DatasetEntityContract $entity, NormalizationRegistry $normalizationRegistry): iterable
+    private function getMedias(DatasetEntityContract $entity): iterable
     {
         if ($entity instanceof Media) {
             yield $entity;
@@ -77,13 +77,13 @@ class DumpReceiver extends ReceiverContract
         if ($entity->hasAttached(Media::class)) {
             /** @var Media $media */
             $media = $entity->getAttachment(Media::class);
-            yield from static::getMedias($media, $normalizationRegistry);
+            yield from $this->getMedias($media);
         }
     }
 
-    private static function getMediaStream(Media $media, NormalizationRegistry $normalizationRegistry): ?StreamInterface
+    private function getMediaStream(Media $media): ?StreamInterface
     {
-        $denormalizer = $normalizationRegistry->getDenormalizer('stream');
+        $denormalizer = $this->normalizationRegistry->getDenormalizer('stream');
 
         if (!$denormalizer instanceof DenormalizerInterface) {
             return null;

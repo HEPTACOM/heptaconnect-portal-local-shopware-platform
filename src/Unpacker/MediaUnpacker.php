@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker;
 
-use Heptacom\HeptaConnect\Core\Storage\Contract\DenormalizerInterface;
-use Heptacom\HeptaConnect\Core\Storage\NormalizationRegistry;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\Media;
+use Heptacom\HeptaConnect\Portal\Base\Serialization\Contract\DenormalizerInterface;
+use Heptacom\HeptaConnect\Portal\Base\Serialization\Contract\NormalizationRegistryContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Psr\Http\Message\StreamInterface;
 use Shopware\Core\Content\Media\MediaService;
@@ -15,13 +15,13 @@ class MediaUnpacker
 {
     private MediaService $mediaService;
 
-    private NormalizationRegistry $normalizationRegistry;
+    private NormalizationRegistryContract $normalizationRegistry;
 
     private DalAccess $dalAccess;
 
     public function __construct(
         MediaService $mediaService,
-        NormalizationRegistry $normalizationRegistry,
+        NormalizationRegistryContract $normalizationRegistry,
         DalAccess $dalAccess
     ) {
         $this->mediaService = $mediaService;

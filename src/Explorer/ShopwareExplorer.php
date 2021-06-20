@@ -6,20 +6,23 @@ namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Explorer;
 use Heptacom\HeptaConnect\Portal\Base\Exploration\Contract\ExploreContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Exploration\Contract\ExplorerContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
-use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Dbal\Common\RepositoryIterator;
 use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 
 abstract class ShopwareExplorer extends ExplorerContract
 {
+    private DalAccess $dal;
+
+    public function __construct(DalAccess $dal)
+    {
+        $this->dal = $dal;
+    }
+
     protected function run(ExploreContextInterface $context): iterable
     {
-        $container = $context->getContainer();
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        $repository = $dalAccess->repository($this->getRepositoryName());
+        $repository = $this->dal->repository($this->getRepositoryName());
         /** @var RepositoryIterator $iterator */
-        $iterator = new RepositoryIterator($repository, clone $dalAccess->getContext());
+        $iterator = new RepositoryIterator($repository, clone $this->dal->getContext());
 
         while (!\is_null($entities = $iterator->fetch())) {
             /** @var Entity $element */

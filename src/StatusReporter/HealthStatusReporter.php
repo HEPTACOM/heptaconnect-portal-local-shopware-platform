@@ -10,6 +10,13 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 
 class HealthStatusReporter extends StatusReporterContract
 {
+    private DalAccess $dal;
+
+    public function __construct(DalAccess $dal)
+    {
+        $this->dal = $dal;
+    }
+
     public function supportsTopic(): string
     {
         return self::TOPIC_HEALTH;
@@ -18,12 +25,10 @@ class HealthStatusReporter extends StatusReporterContract
     protected function run(StatusReportingContextInterface $context): array
     {
         $result = [$this->supportsTopic() => true];
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $context->getContainer()->get(DalAccess::class);
-        $salesChannelRepository = $dalAccess->repository('sales_channel');
+        $salesChannelRepository = $this->dal->repository('sales_channel');
 
         try {
-            $salesChannelRepository->searchIds(new Criteria(), $dalAccess->getContext());
+            $salesChannelRepository->searchIds(new Criteria(), $this->dal->getContext());
         } catch (\Throwable $exception) {
             $result[$this->supportsTopic()] = false;
             $result['message'] = $exception->getMessage();

@@ -12,6 +12,16 @@ use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\PropertyGroupUnp
 
 class PropertyGroupReceiver extends ReceiverContract
 {
+    private DalAccess $dal;
+
+    private PropertyGroupUnpacker $propertyGroupUnpacker;
+
+    public function __construct(DalAccess $dal, PropertyGroupUnpacker $propertyGroupUnpacker)
+    {
+        $this->dal = $dal;
+        $this->propertyGroupUnpacker = $propertyGroupUnpacker;
+    }
+
     public function supports(): string
     {
         return PropertyGroup::class;
@@ -24,12 +34,6 @@ class PropertyGroupReceiver extends ReceiverContract
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $container = $context->getContainer();
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        /** @var PropertyGroupUnpacker $unpacker */
-        $unpacker = $container->get(PropertyGroupUnpacker::class);
-
-        $dalAccess->repository('property_group')->upsert([$unpacker->unpack($entity)], $dalAccess->getContext());
+        $this->dal->repository('property_group')->upsert([$this->propertyGroupUnpacker->unpack($entity)], $this->dal->getContext());
     }
 }

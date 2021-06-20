@@ -28,6 +28,26 @@ use Shopware\Core\System\Salutation\SalutationEntity;
 
 class CustomerReceiver extends ReceiverContract
 {
+    private DalAccess $dal;
+
+    private ExistingIdentifierCache $idCache;
+
+    private CustomerSalesChannelStrategyContract $customerSalesChannelStrategy;
+
+    private PortalStorageInterface $storage;
+
+    public function __construct(
+        DalAccess $dal,
+        ExistingIdentifierCache $idCache,
+        CustomerSalesChannelStrategyContract $customerSalesChannelStrategy,
+        PortalStorageInterface $storage
+    ) {
+        $this->dal = $dal;
+        $this->idCache = $idCache;
+        $this->customerSalesChannelStrategy = $customerSalesChannelStrategy;
+        $this->storage = $storage;
+    }
+
     public function supports(): string
     {
         return Customer::class;
@@ -40,62 +60,24 @@ class CustomerReceiver extends ReceiverContract
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $container = $context->getContainer();
-        /** @var ExistingIdentifierCache $existingIdentifierCache */
-        $existingIdentifierCache = $container->get(ExistingIdentifierCache::class);
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        $customerRepository = $dalAccess->repository('customer');
-        $dalContext = $dalAccess->getContext();
+        $dalContext = $this->dal->getContext();
         $entity->setPrimaryKey(
             PrimaryKeyGenerator::generatePrimaryKey($entity, '57854452-bbf4-4ba4-ab27-a52723c2f634') ??
             Uuid::uuid5('36e684e2-e182-4d60-a180-9b61a4cce982', $entity->getNumber())->getHex()
         );
 
-        $customerSalesChannelStrategy = $container->get(CustomerSalesChannelStrategyContract::class);
-
-        if (!$dalAccess->idExists('customer', $entity->getPrimaryKey())) {
+        if (!$this->dal->idExists('customer', $entity->getPrimaryKey())) {
             // TODO: support creating customers
             // throw new \Exception('Creating customers is not (yet) supported by this portal.');
 
-            $this->createCustomer(
-                $entity,
-                $customerRepository,
-                $dalAccess->repository('salutation'),
-                $dalAccess->repository('country'),
-                $dalAccess->repository('sales_channel'),
-                $dalContext,
-                $context->getStorage(),
-                $existingIdentifierCache,
-                $customerSalesChannelStrategy,
-                $context
-            );
+            $this->createCustomer($entity, $dalContext, $context);
         } else {
-            $this->updateCustomer(
-                $entity,
-                $customerRepository,
-                $dalAccess->repository('customer_tag'),
-                $dalContext,
-                $context->getStorage(),
-                $existingIdentifierCache,
-                $customerSalesChannelStrategy,
-                $context
-            );
+            $this->updateCustomer($entity, $dalContext, $context);
         }
     }
 
-    protected function createCustomer(
-        Customer $entity,
-        EntityRepositoryInterface $customerRepository,
-        EntityRepositoryInterface $salutationRepository,
-        EntityRepositoryInterface $countryRepository,
-        EntityRepositoryInterface $salesChannelRepository,
-        Context $context,
-        PortalStorageInterface $storage,
-        ExistingIdentifierCache $existingIdentifierCache,
-        CustomerSalesChannelStrategyContract $customerSalesChannelStrategy,
-        ReceiveContextInterface $receiveContext
-    ): void {
+    protected function createCustomer(Customer $entity, Context $context, ReceiveContextInterface $receiveContext): void
+    {
         if ($customerGroup = $entity->getCustomerGroup()) {
             // TODO sync customer groups and map their respective primary key
             $customerGroupId = $customerGroup->getPrimaryKey() ?? Defaults::FALLBACK_CUSTOMER_GROUP;
@@ -105,11 +87,11 @@ class CustomerReceiver extends ReceiverContract
 
         $customer = [
             'id' => $entity->getPrimaryKey(),
-            'salesChannelId' => $customerSalesChannelStrategy->getCustomerSalesChannelId($entity, $receiveContext),
+            'salesChannelId' => $this->customerSalesChannelStrategy->getCustomerSalesChannelId($entity, $receiveContext),
             'groupId' => $customerGroupId,
-            'languageId' => $existingIdentifierCache->getLanguageId(self::getLocale($entity)), // TODO use enhancer
+            'languageId' => $this->idCache->getLanguageId(self::getLocale($entity)), // TODO use enhancer
             'customerNumber' => $entity->getNumber(),
-            'salutationId' => $this->getFallbackSalutation($salutationRepository, $context)->getId(),
+            'salutationId' => $this->getFallbackSalutation($context)->getId(),
             'firstName' => $entity->getNames()->first(),
             'lastName' => $entity->getNames()->last(),
             'company' => $entity->getCompany(),
@@ -120,7 +102,7 @@ class CustomerReceiver extends ReceiverContract
         ];
 
         /** @var SalesChannelEntity $salesChannel */
-        $salesChannel = $salesChannelRepository->search(new Criteria([$customer['salesChannelId']]), $context)->first();
+        $salesChannel = $this->dal->repository('sales_channel')->search(new Criteria([$customer['salesChannelId']]), $context)->first();
         $customer['defaultPaymentMethodId'] = $salesChannel->getPaymentMethodId();
 
         if ($customerPriceGroup = $entity->getCustomerPriceGroup()) {
@@ -128,8 +110,8 @@ class CustomerReceiver extends ReceiverContract
 
             $customerPriceGroup->setPrimaryKey($customerPriceGroupId);
 
-            if (!StorageHelper::isCustomerPriceGroupTagId($customerPriceGroupId, $storage)) {
-                StorageHelper::addCustomerPriceGroupTagId($customerPriceGroupId, $storage);
+            if (!StorageHelper::isCustomerPriceGroupTagId($customerPriceGroupId, $this->storage)) {
+                StorageHelper::addCustomerPriceGroupTagId($customerPriceGroupId, $this->storage);
             }
 
             $customer['tags'] = [[
@@ -142,8 +124,8 @@ class CustomerReceiver extends ReceiverContract
 
             $customerDiscountGroup->setPrimaryKey($customerDiscountGroupId);
 
-            if (!StorageHelper::isCustomerDiscountGroupTagId($customerDiscountGroupId, $storage)) {
-                StorageHelper::addCustomerDiscountGroupTagId($customerDiscountGroupId, $storage);
+            if (!StorageHelper::isCustomerDiscountGroupTagId($customerDiscountGroupId, $this->storage)) {
+                StorageHelper::addCustomerDiscountGroupTagId($customerDiscountGroupId, $this->storage);
             }
 
             $customer['tags'] = [[
@@ -152,34 +134,19 @@ class CustomerReceiver extends ReceiverContract
         }
 
         if ($defaultBillingAddress = $entity->getDefaultBillingAddress()) {
-            $customer['defaultBillingAddress'] = $this->getAddress(
-                $defaultBillingAddress,
-                $salutationRepository,
-                $countryRepository,
-                $context
-            );
+            $customer['defaultBillingAddress'] = $this->getAddress($defaultBillingAddress, $context);
 
             $customer['defaultBillingAddressId'] = $customer['defaultBillingAddress']['id'];
         }
 
         if ($defaultShippingAddress = $entity->getDefaultShippingAddress()) {
-            $customer['defaultShippingAddress'] = $this->getAddress(
-                $defaultShippingAddress,
-                $salutationRepository,
-                $countryRepository,
-                $context
-            );
+            $customer['defaultShippingAddress'] = $this->getAddress($defaultShippingAddress, $context);
 
             $customer['defaultShippingAddressId'] = $customer['defaultShippingAddress']['id'];
         }
 
         foreach ($entity->getAddresses() as $address) {
-            $generatedAddress = $this->getAddress(
-                $address,
-                $salutationRepository,
-                $countryRepository,
-                $context
-            );
+            $generatedAddress = $this->getAddress($address, $context);
 
             $customer['addresses'][] = $generatedAddress;
 
@@ -187,19 +154,12 @@ class CustomerReceiver extends ReceiverContract
             $customer['defaultShippingAddressId'] ??= $generatedAddress['id'];
         }
 
-        $customerRepository->create([$customer], $context);
+        $this->dal->repository('customer')->create([$customer], $context);
     }
 
-    protected function updateCustomer(
-        Customer $entity,
-        EntityRepositoryInterface $customerRepository,
-        EntityRepositoryInterface $customerTagRepository,
-        Context $context,
-        PortalStorageInterface $storage,
-        ExistingIdentifierCache $existingIdentifierCache,
-        CustomerSalesChannelStrategyContract $customerSalesChannelStrategy,
-        ReceiveContextInterface $receiveContext
-    ): void {
+    protected function updateCustomer(Customer $entity, Context $context, ReceiveContextInterface $receiveContext): void
+    {
+        $customerRepository = $this->dal->repository('customer');
         $criteria = (new Criteria([$entity->getPrimaryKey()]))->addAssociation('tags');
         $existingCustomer = $customerRepository->search($criteria, $context)->first();
 
@@ -226,11 +186,11 @@ class CustomerReceiver extends ReceiverContract
             'email' => $entity->getEmail(),
             'active' => $entity->isActive(),
             'guest' => $entity->isGuest(),
-            'languageId' => $existingIdentifierCache->getLanguageId(self::getLocale($entity)),
+            'languageId' => $this->idCache->getLanguageId(self::getLocale($entity)),
         ];
 
         if ($existingCustomer->getSalesChannelId() === Defaults::SALES_CHANNEL) {
-            $customer['salesChannelId'] = $customerSalesChannelStrategy->getCustomerSalesChannelId($entity, $receiveContext);
+            $customer['salesChannelId'] = $this->customerSalesChannelStrategy->getCustomerSalesChannelId($entity, $receiveContext);
         }
 
         if ($entity->getCustomerGroup() && $entity->getCustomerGroup()->getPrimaryKey()) {
@@ -242,8 +202,8 @@ class CustomerReceiver extends ReceiverContract
 
             $customerPriceGroup->setPrimaryKey($customerPriceGroupId);
 
-            if (!StorageHelper::isCustomerPriceGroupTagId($customerPriceGroupId, $storage)) {
-                StorageHelper::addCustomerPriceGroupTagId($customerPriceGroupId, $storage);
+            if (!StorageHelper::isCustomerPriceGroupTagId($customerPriceGroupId, $this->storage)) {
+                StorageHelper::addCustomerPriceGroupTagId($customerPriceGroupId, $this->storage);
             }
 
             unset($deleteCustomerTags[$customerPriceGroupId]);
@@ -259,8 +219,8 @@ class CustomerReceiver extends ReceiverContract
 
             $customerDiscountGroup->setPrimaryKey($customerDiscountGroupId);
 
-            if (!StorageHelper::isCustomerDiscountGroupTagId($customerDiscountGroupId, $storage)) {
-                StorageHelper::addCustomerDiscountGroupTagId($customerDiscountGroupId, $storage);
+            if (!StorageHelper::isCustomerDiscountGroupTagId($customerDiscountGroupId, $this->storage)) {
+                StorageHelper::addCustomerDiscountGroupTagId($customerDiscountGroupId, $this->storage);
             }
 
             unset($deleteCustomerTags[$customerDiscountGroupId]);
@@ -287,7 +247,7 @@ class CustomerReceiver extends ReceiverContract
         }
 
         if (!empty($deleteCustomerTags)) {
-            $customerTagRepository->delete(\array_values($deleteCustomerTags), $context);
+            $this->dal->repository('customer_tag')->delete(\array_values($deleteCustomerTags), $context);
         }
 
         $customerRepository->update([$customer], $context);
@@ -307,12 +267,10 @@ class CustomerReceiver extends ReceiverContract
         return $locales[$entity->getLanguage()->getLocaleCode()] ?? 'de-DE';
     }
 
-    protected function getFallbackSalutation(
-        EntityRepositoryInterface $salutationRepository,
-        Context $context
-    ): SalutationEntity {
+    protected function getFallbackSalutation(Context $context): SalutationEntity
+    {
         $criteria = new Criteria();
-        $salutations = $salutationRepository->search($criteria, $context);
+        $salutations = $this->dal->repository('salutation')->search($criteria, $context);
 
         $salutations->sort(function (SalutationEntity $a, SalutationEntity $b): int {
             if ($a->getSalutationKey() === 'not_specified') {
@@ -355,12 +313,8 @@ class CustomerReceiver extends ReceiverContract
         return $tagId;
     }
 
-    private function getAddress(
-        Address $address,
-        EntityRepositoryInterface $salutationRepository,
-        EntityRepositoryInterface $countryRepository,
-        Context $context
-    ): array {
+    private function getAddress(Address $address, Context $context): array
+    {
         $address->setPrimaryKey(PrimaryKeyGenerator::generatePrimaryKey($address, 'faa35e6e-27eb-4f0a-bb3d-2e6b03991f9b') ?? Uuid::uuid4()->getHex());
 
         $targetAddress = [
@@ -388,9 +342,9 @@ class CustomerReceiver extends ReceiverContract
             $salutationCriteria = new Criteria();
             $salutationCriteria->addFilter(new EqualsFilter('salutationKey', $salutation->getSlug()));
 
-            $salutationId = $salutationRepository->searchIds($salutationCriteria, $context)->firstId();
+            $salutationId = $this->dal->repository('salutation')->searchIds($salutationCriteria, $context)->firstId();
         } else {
-            $salutationId = $this->getFallbackSalutation($salutationRepository, $context)->getId();
+            $salutationId = $this->getFallbackSalutation($context)->getId();
         }
 
         if ($salutationId) {
@@ -404,7 +358,7 @@ class CustomerReceiver extends ReceiverContract
                 new EqualsFilter('iso3', $address->getCountry()->getIso3()),
             ]));
 
-            $targetAddress['countryId'] = $countryRepository->searchIds($countryCriteria, $context)->firstId();
+            $targetAddress['countryId'] = $this->dal->repository('country')->searchIds($countryCriteria, $context)->firstId();
         }
 
         return $targetAddress;

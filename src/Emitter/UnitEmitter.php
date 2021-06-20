@@ -16,6 +16,13 @@ use Shopware\Core\System\Unit\UnitEntity;
 
 class UnitEmitter extends EmitterContract
 {
+    private DalAccess $dal;
+
+    public function __construct(DalAccess $dal)
+    {
+        $this->dal = $dal;
+    }
+
     public function supports(): string
     {
         return Unit::class;
@@ -25,10 +32,7 @@ class UnitEmitter extends EmitterContract
         string $externalId,
         EmitContextInterface $context
     ): ?DatasetEntityContract {
-        $container = $context->getContainer();
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        $source = $dalAccess->read('unit', [$externalId], ['translations.language.locale'])->first();
+        $source = $this->dal->read('unit', [$externalId], ['translations.language.locale'])->first();
 
         if (!$source instanceof UnitEntity) {
             return null;

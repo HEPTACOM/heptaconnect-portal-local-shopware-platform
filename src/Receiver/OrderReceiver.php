@@ -33,6 +33,16 @@ use Shopware\Core\Framework\Uuid\Uuid as ShopwareUuid;
 
 class OrderReceiver extends ReceiverContract
 {
+    private DalAccess $dal;
+
+    private StateMachineTransitionWalker $stateMachineTransitionWalker;
+
+    public function __construct(DalAccess $dal, StateMachineTransitionWalker $stateMachineTransitionWalker)
+    {
+        $this->dal = $dal;
+        $this->stateMachineTransitionWalker = $stateMachineTransitionWalker;
+    }
+
     public function supports(): string
     {
         return Order::class;
@@ -51,14 +61,9 @@ class OrderReceiver extends ReceiverContract
             throw new \Exception('Unsupported order creation. Map first to an existing order to update'); // TODO: check types
         }
 
-        $container = $context->getContainer();
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        $dalContext = $dalAccess->getContext();
-        /** @var StateMachineTransitionWalker $transitionWalker */
-        $transitionWalker = $container->get(StateMachineTransitionWalker::class);
+        $dalContext = $this->dal->getContext();
 
-        $order = $dalAccess->read('order', [$primaryKey], [
+        $order = $this->dal->read('order', [$primaryKey], [
             'stateMachineState',
             'deliveries',
             'delivery.trackingCodes',
@@ -86,43 +91,28 @@ class OrderReceiver extends ReceiverContract
                 break;
         }
 
-        $transitionWalker->walkPath('order', $primaryKey, 'stateId', $orderState, $dalContext);
+        $this->stateMachineTransitionWalker->walkPath('order', $primaryKey, 'stateId', $orderState, $dalContext);
 
         $sourceLineItems = iterable_to_array($entity->getLineItems());
         $targetLineItems = $order->getLineItems()->getElements();
 
         $this->saveOrderState($context->getStorage(), $entity);
 
-        self::updateLineItems(
-            $sourceLineItems,
-            $targetLineItems,
-            $dalAccess->repository('order_line_item'),
-            $dalAccess,
-            $dalContext,
-            $entity
-        );
+        $this->updateLineItems($sourceLineItems, $targetLineItems, $dalContext, $entity);
 
         $delivery = $order->getDeliveries()->first();
 
         if ($delivery instanceof OrderDeliveryEntity) {
-            self::updateTrackingCodes($entity, $delivery, $dalAccess->repository('order_delivery'), $dalContext);
+            self::updateTrackingCodes($entity, $delivery, $this->dal->repository('order_delivery'), $dalContext);
 
             try {
-                $this->updateShippingAddress(
-                    $delivery,
-                    $entity,
-                    $order,
-                    $dalAccess->repository('country'),
-                    $dalAccess->repository('order_address'),
-                    $dalAccess->repository('order_delivery'),
-                    $dalContext
-                );
+                $this->updateShippingAddress($delivery, $entity, $order, $dalContext);
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage(), $e->getCode());
             }
         }
 
-        self::updateOrderPrice($entity, $order, $dalAccess->repository('order'), $dalContext);
+        $this->updateOrderPrice($entity, $order, $dalContext);
     }
 
     protected function saveOrderState(PortalStorageInterface $portalStorage, Order $order): void
@@ -217,14 +207,14 @@ class OrderReceiver extends ReceiverContract
         );
     }
 
-    private static function updateLineItems(
+    private function updateLineItems(
         iterable $sourceLineItems,
         array $targetLineItems,
-        EntityRepositoryInterface $orderLineItemRepository,
-        DalAccess $dalAccess,
         Context $dalContext,
         DatasetEntityContract $entity
     ): void {
+        $orderLineItemRepository = $this->dal->repository('order_line_item');
+
         /** @var LineItem $sourceLineItem */
         foreach ($sourceLineItems as $sourceLineItem) {
             if ($sourceLineItem instanceof LineItemProduct) {
@@ -235,7 +225,7 @@ class OrderReceiver extends ReceiverContract
                 }
 
                 if (empty($sourceLineItem->getPrimaryKey())) {
-                    $targetLineItem = self::getLineItemToCreate($sourceLineItem, $dalAccess, $entity->getPrimaryKey());
+                    $targetLineItem = self::getLineItemToCreate($sourceLineItem, $this->dal, $entity->getPrimaryKey());
                     $orderLineItemRepository->create([$targetLineItem], $dalContext);
                     $sourceLineItem->setPrimaryKey($targetLineItem['id']);
                 }
@@ -243,10 +233,9 @@ class OrderReceiver extends ReceiverContract
         }
     }
 
-    private static function updateOrderPrice(
+    private function updateOrderPrice(
         DatasetEntityContract $entity,
         OrderEntity $order,
-        EntityRepositoryInterface $orderRepository,
         Context $dalContext
     ): void {
         if ($entity->getAmountTotal() !== $order->getAmountTotal()) {
@@ -281,7 +270,7 @@ class OrderReceiver extends ReceiverContract
                 ),
             ];
 
-            $orderRepository->update([$targetOrderPrice], $dalContext);
+            $this->dal->repository('order')->update([$targetOrderPrice], $dalContext);
         }
     }
 
@@ -326,15 +315,11 @@ class OrderReceiver extends ReceiverContract
         ];
     }
 
-    private static function getTargetShippingAddress(
-        DatasetEntityContract $entity,
-        EntityRepositoryInterface $countryRepository,
-        Context $context,
-        OrderEntity $order
-    ): array {
+    private function getTargetShippingAddress(DatasetEntityContract $entity, Context $context, OrderEntity $order): array
+    {
         $countryCriteria = new Criteria();
         $countryCriteria->addFilter(new EqualsFilter('iso', $entity->getShippingAddress()->getCountry()->getIso()));
-        $countryId = $countryRepository->searchIds($countryCriteria, $context)->firstId();
+        $countryId = $this->dal->repository('country')->searchIds($countryCriteria, $context)->firstId();
 
         if (!$countryId) {
             throw new \Exception(\sprintf('countryId or countryStateId is not given.'));
@@ -358,33 +343,25 @@ class OrderReceiver extends ReceiverContract
         OrderDeliveryEntity $delivery,
         DatasetEntityContract $entity,
         OrderEntity $order,
-        EntityRepositoryInterface $countryRepository,
-        EntityRepositoryInterface $orderAddressRepository,
-        EntityRepositoryInterface $orderDeliveryRepository,
         Context $dalContext
     ): void {
         $sourceShippingAddress = self::getSourceShippingAddress($delivery, $order);
         $sourceShippingAddressHash = self::getOrderAddressHashKey($sourceShippingAddress);
 
-        $targetShippingAddress = self::getTargetShippingAddress(
-            $entity,
-            $countryRepository,
-            $dalContext,
-            $order
-        );
+        $targetShippingAddress = $this->getTargetShippingAddress($entity, $dalContext, $order);
         $targetShippingAddressHash = self::getOrderAddressHashKey($targetShippingAddress);
 
         if ($targetShippingAddressHash !== $sourceShippingAddressHash) {
             $targetShippingAddress['id'] = $targetShippingAddressHash;
             try {
-                $orderAddressRepository->create([$targetShippingAddress], $dalContext);
+                $this->dal->repository('order_address')->create([$targetShippingAddress], $dalContext);
 
                 $target = [
                     'id' => $delivery->getId(),
                     'orderId' => $entity->getPrimaryKey(),
                     'shippingOrderAddressId' => $targetShippingAddress['id'],
                 ];
-                $orderDeliveryRepository->update([$target], $dalContext);
+                $this->dal->repository('order_delivery')->update([$target], $dalContext);
             } catch (WriteTypeIntendException $exception) {
                 throw new \Exception('new shipping address already exist.');
             }

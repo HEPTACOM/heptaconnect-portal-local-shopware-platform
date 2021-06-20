@@ -3,12 +3,12 @@ declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver;
 
-use Heptacom\HeptaConnect\Core\Storage\Contract\DenormalizerInterface;
-use Heptacom\HeptaConnect\Core\Storage\NormalizationRegistry;
 use Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\Media;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiveContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiverContract;
+use Heptacom\HeptaConnect\Portal\Base\Serialization\Contract\DenormalizerInterface;
+use Heptacom\HeptaConnect\Portal\Base\Serialization\Contract\NormalizationRegistryContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\PrimaryKeyGenerator;
 use Psr\Http\Message\StreamInterface;
@@ -21,6 +21,22 @@ use Symfony\Component\Mime\MimeTypes;
 
 class MediaReceiver extends ReceiverContract
 {
+    private DalAccess $dal;
+
+    private NormalizationRegistryContract $normalizationRegistry;
+
+    private FileSaver $fileSaver;
+
+    public function __construct(
+        DalAccess $dal,
+        NormalizationRegistryContract $normalizationRegistry,
+        FileSaver $fileSaver
+    ) {
+        $this->dal = $dal;
+        $this->normalizationRegistry = $normalizationRegistry;
+        $this->fileSaver = $fileSaver;
+    }
+
     public function supports(): string
     {
         return Media::class;
@@ -33,21 +49,16 @@ class MediaReceiver extends ReceiverContract
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $container = $context->getContainer();
-        /** @var DalAccess $dalAccess */
-        $dalAccess = $container->get(DalAccess::class);
-        $swContext = $dalAccess->getContext();
-        /** @var NormalizationRegistry $normalizationRegistry */
-        $normalizationRegistry = $container->get(NormalizationRegistry::class);
-        $source = self::getMediaStream($entity, $normalizationRegistry);
-        $mediaRepository = $dalAccess->repository('media');
-        $mediaFolderRepository = $dalAccess->repository('media_folder');
+        $swContext = $this->dal->getContext();
+        $source = $this->getMediaStream($entity);
+        $mediaRepository = $this->dal->repository('media');
+        $mediaFolderRepository = $this->dal->repository('media_folder');
 
         if (!$source instanceof StreamInterface) {
             throw new \RuntimeException('Could not unpack media stream');
         }
 
-        if (!$dalAccess->idExists('media', $entity->getPrimaryKey())) {
+        if (!$this->dal->idExists('media', $entity->getPrimaryKey())) {
             $criteria = new Criteria();
             $criteria->addFilter(new EqualsFilter('defaultFolder.entity', 'import_export_profile'));
             $criteria->setLimit(1);
@@ -69,10 +80,7 @@ class MediaReceiver extends ReceiverContract
 
         $fileName = \tempnam(\sys_get_temp_dir(), 'local-media-receiver');
 
-        /** @var FileSaver $fileSaver */
-        $fileSaver = $container->get(FileSaver::class);
-
-        $fileSaver->persistFileToMedia(
+        $this->fileSaver->persistFileToMedia(
             self::prepareMediaFile($fileName, $entity->getMimeType(), $source),
             $entity->getPrimaryKey(),
             $entity->getPrimaryKey(),
@@ -100,9 +108,9 @@ class MediaReceiver extends ReceiverContract
         );
     }
 
-    private static function getMediaStream(Media $media, NormalizationRegistry $normalizationRegistry): ?StreamInterface
+    private function getMediaStream(Media $media): ?StreamInterface
     {
-        $denormalizer = $normalizationRegistry->getDenormalizer('stream');
+        $denormalizer = $this->normalizationRegistry->getDenormalizer('stream');
 
         if (!$denormalizer instanceof DenormalizerInterface) {
             return null;
