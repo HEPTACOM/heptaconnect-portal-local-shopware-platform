@@ -59,6 +59,12 @@
             "url": "../**"
         }
     },
+    "support": {
+        "issues": "https://github.com/HEPTACOM/heptaconnect-portal-local-shopware-platform/issues",
+        "source": "https://github.com/HEPTACOM/heptaconnect-portal-local-shopware-platform",
+        "docs": "https://connect.heptacom.de/",
+        "rss": "https://connect.heptacom.de/feed/rss2.xml"
+    },
     "extra": {
         "heptaconnect": {
             "portals": [
