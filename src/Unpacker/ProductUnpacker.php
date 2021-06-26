@@ -28,13 +28,13 @@ use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 
 class ProductUnpacker
 {
-    private const NS_PRODUCT = '5fb023e75e65494f9160b99602ce0587';
-
     public const NS_RULE_ID = 'cbfb4fc6171911eb895d33ddd3eed5ba';
 
     public const NS_CONDITION_CONTAINER_OR = '2caad876178011ebbeba832e03190a18';
 
     public const NS_CONDITION_CONTAINER_AND = 'c51261d8179911ebb4c3f3c3cb39b2d2';
+
+    private const NS_PRODUCT = '5fb023e75e65494f9160b99602ce0587';
 
     private DalAccess $dalAccess;
 
@@ -76,7 +76,7 @@ class ProductUnpacker
         }
 
         $taxId = $this->unpackTaxId($source);
-        $prices = iterable_to_array($this->unpackPrices($source));
+        $prices = \iterable_to_array($this->unpackPrices($source));
         $active = $source->isActive();
         $price = [
             [
@@ -84,7 +84,7 @@ class ProductUnpacker
                 'gross' => 0,
                 'net' => 0,
                 'linked' => true,
-            ]
+            ],
         ];
         $productMedias = $this->getProductMedias($source);
         $manufacturer = null;
@@ -146,7 +146,7 @@ class ProductUnpacker
                     'id' => $category->getPrimaryKey(),
                 ],
                 \array_filter(
-                    iterable_to_array($source->getCategories()),
+                    \iterable_to_array($source->getCategories()),
                     fn (Category $category) => $this->dalAccess->idExists('category', $category->getPrimaryKey())
                 )
             ),

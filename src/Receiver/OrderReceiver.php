@@ -93,7 +93,7 @@ class OrderReceiver extends ReceiverContract
 
         $this->stateMachineTransitionWalker->walkPath('order', $primaryKey, 'stateId', $orderState, $dalContext);
 
-        $sourceLineItems = iterable_to_array($entity->getLineItems());
+        $sourceLineItems = \iterable_to_array($entity->getLineItems());
         $targetLineItems = $order->getLineItems()->getElements();
 
         $this->saveOrderState($context->getStorage(), $entity);
@@ -124,7 +124,7 @@ class OrderReceiver extends ReceiverContract
     {
         $order->setPrimaryKey($order->getPrimaryKey() ?? RamseyUuid::uuid5('3c8352ab-0fb8-4006-bff6-f8133676644e', $order->getNumber())->getHex());
 
-        return 'OrderHashKey:' . $order->getPrimaryKey();
+        return 'OrderHashKey:'.$order->getPrimaryKey();
     }
 
     private function getCurrentOrderHash(Order $order): string

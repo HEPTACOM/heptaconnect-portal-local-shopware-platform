@@ -206,7 +206,6 @@ class CustomerPacker
         return null;
     }
 
-
     protected function readCustomerGroup(string $customerId): CustomerGroup
     {
         $criteria = new Criteria();

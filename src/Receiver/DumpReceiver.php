@@ -20,7 +20,7 @@ abstract class DumpReceiver extends ReceiverContract
     private string $supports;
 
     /**
-     * @var class-string<\Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract> $supports
+     * @var class-string<\Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract>
      */
     public function __construct(NormalizationRegistryContract $normalizationRegistry, string $supports)
     {

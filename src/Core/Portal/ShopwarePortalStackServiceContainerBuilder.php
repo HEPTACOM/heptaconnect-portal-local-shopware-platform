@@ -84,7 +84,7 @@ class ShopwarePortalStackServiceContainerBuilder implements PortalStackServiceCo
     private function setSyntheticServices(ContainerBuilder $containerBuilder, array $services): void
     {
         foreach ($services as $id => $service) {
-            $definitionId = (string)$id;
+            $definitionId = (string) $id;
             $containerBuilder->set($definitionId, $service);
             $definition = (new Definition())
                 ->setSynthetic(true)

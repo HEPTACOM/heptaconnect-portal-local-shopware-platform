@@ -79,8 +79,8 @@ class DalAccess
 
         if (\method_exists(Context::class, 'disableCache')) {
             return $result->disableCache(static fn (Context $context): Context => clone $context);
-        } else {
-            return $result;
         }
+
+        return $result;
     }
 }

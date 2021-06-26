@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker;
 
-use Heptacom\HeptaConnect\Dataset\Ecommerce\Property\PropertyGroup;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Property\PropertyValue;
 use Shopware\Core\Framework\Uuid\Uuid;
 
