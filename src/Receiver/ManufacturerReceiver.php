@@ -34,6 +34,6 @@ class ManufacturerReceiver extends ReceiverContract
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $this->dal->repository('manufacturer')->upsert([$this->manufacturerUnpacker->unpack($entity)], $this->dal->getContext());
+        $this->dal->repository('product_manufacturer')->upsert([$this->manufacturerUnpacker->unpack($entity)], $this->dal->getContext());
     }
 }
