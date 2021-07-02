@@ -9,7 +9,7 @@
         "AGPL-3.0-or-later",
         "proprietary"
     ],
-    "version": "0.2.0",
+    "version": "0.3.0",
     "authors": [
         {
             "name": "HEPTACOM GmbH"
@@ -17,10 +17,10 @@
     ],
     "require": {
         "php": ">=7.4",
-        "heptacom/heptaconnect-bridge-shopware-platform": "^0.2",
-        "heptacom/heptaconnect-core": "^0.2",
-        "heptacom/heptaconnect-dataset-ecommerce": ">=0.0.1",
-        "heptacom/heptaconnect-portal-base": "^0.2",
+        "heptacom/heptaconnect-bridge-shopware-platform": "self.version",
+        "heptacom/heptaconnect-core": "self.version",
+        "heptacom/heptaconnect-dataset-ecommerce": "self.version",
+        "heptacom/heptaconnect-portal-base": "self.version",
         "shopware/core": ">=6.2.1"
     },
     "conflict": {
