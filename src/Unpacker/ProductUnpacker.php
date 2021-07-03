@@ -228,7 +228,12 @@ class ProductUnpacker
     {
         /** @var Price $sourcePrice */
         foreach ($source->getPrices() as $sourcePrice) {
-            $priceId = $sourcePrice->getPrimaryKey();
+            $priceId = PrimaryKeyGenerator::generatePrimaryKey(
+                $sourcePrice,
+                'da210b7c-fd7c-4aa6-a0ee-846a508482db'
+            ) ?? RamseyUuid::uuid4()->getHex();
+
+            $sourcePrice->setPrimaryKey($priceId);
             $ruleIdSource = RamseyUuid::uuid5(self::NS_RULE_ID, $priceId);
             $sourcePrice->setPrimaryKey($sourcePrice->getPrimaryKey() ?? RamseyUuid::uuid5(
                     $ruleIdSource->toString(),
