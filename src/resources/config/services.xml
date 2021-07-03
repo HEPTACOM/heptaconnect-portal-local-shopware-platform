@@ -6,9 +6,9 @@
 >
     <services>
         <prototype
-            exclude="../../src/{Core,Support/UnwalkablePathException.php}"
+            exclude="../../{Core,Support/UnwalkablePathException.php}"
             namespace="Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\"
-            resource="../../src/*"
+            resource="../../*"
         />
 
         <service

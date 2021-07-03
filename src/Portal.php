@@ -7,8 +7,8 @@ use Heptacom\HeptaConnect\Portal\Base\Portal\Contract\PortalContract;
 
 class Portal extends PortalContract
 {
-    public function hasAutomaticPsr4Prototyping(): bool
+    public function getPsr4(): array
     {
-        return false;
+        return [];
     }
 }
