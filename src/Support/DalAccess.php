@@ -6,6 +6,7 @@ namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Portal;
 use Psr\Container\ContainerInterface;
 use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\DataAbstractionLayer\Dbal\Common\RepositoryIterator;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityCollection;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Indexing\EntityIndexerRegistry;
@@ -48,6 +49,22 @@ class DalAccess
         return $repo
                 ->searchIds(new Criteria([$primaryKey]), $context ?? $this->getContext())
                 ->getTotal() > 0;
+    }
+
+    public function ids(string $reponame, ?Criteria $criteria = null, ?Context $context = null): iterable
+    {
+        $repo = $this->repository($reponame);
+        $criteria ??= new Criteria();
+
+        if (($criteria->getLimit() ?? 0) < 1) {
+            $criteria->setLimit(50);
+        }
+
+        $iterator = new RepositoryIterator($repo, $context, $criteria);
+
+        while (($ids = $iterator->fetchIds()) !== null) {
+            yield from $ids;
+        }
     }
 
     /**
