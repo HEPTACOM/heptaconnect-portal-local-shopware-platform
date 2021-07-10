@@ -5,6 +5,9 @@ namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support;
 
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Portal;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
+use Shopware\Core\Framework\Api\Sync\SyncServiceInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Dbal\Common\RepositoryIterator;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityCollection;
@@ -16,17 +19,22 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Struct\ArrayStruct;
 use Shopware\Core\Framework\Uuid\Uuid;
 
-class DalAccess
+class DalAccess implements LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     public const EXTENSION_HEPTACONNECT_CONTEXT = 'heptaconnectContext';
 
     private ContainerInterface $container;
 
     private string $configDalIndexingMode;
 
-    public function __construct(ContainerInterface $container, string $configDalIndexingMode)
+    private SyncServiceInterface $sync;
+
+    public function __construct(ContainerInterface $container, SyncServiceInterface $sync, string $configDalIndexingMode)
     {
         $this->container = $container;
+        $this->sync = $sync;
         $this->configDalIndexingMode = $configDalIndexingMode;
     }
 
@@ -36,6 +44,11 @@ class DalAccess
         $result = $this->container->get($name.'.repository');
 
         return $result;
+    }
+
+    public function createSyncer(): DalSyncer
+    {
+        return DalSyncer::make($this->sync, $this->getContext(), $this->logger);
     }
 
     public function idExists(string $reponame, ?string $primaryKey, ?Context $context = null): bool

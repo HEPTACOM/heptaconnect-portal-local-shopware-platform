@@ -24,12 +24,22 @@
 
         <service id="Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess">
             <argument id="shopware_service_container" type="service"/>
+            <argument id="Shopware\Core\Framework\Api\Sync\SyncServiceInterface" type="service"/>
             <argument>%portal_config.dal_indexing_mode%</argument>
         </service>
         <service id="Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\StateMachineTransitionWalker">
             <argument id="Shopware\Core\System\StateMachine\StateMachineRegistry" type="service"/>
             <argument id="Shopware\Core\Framework\DataAbstractionLayer\DefinitionInstanceRegistry" type="service"/>
             <argument id="state_machine_state.repository" type="service"/>
+        </service>
+
+        <!-- pulled over from shopware container -->
+        <service
+            id="Shopware\Core\Framework\Api\Sync\SyncServiceInterface"
+            class="Shopware\Core\Framework\Api\Sync\SyncService"
+        >
+            <factory service="shopware_service_container" method="get"/>
+            <argument>Shopware\Core\Framework\Api\Sync\SyncService</argument>
         </service>
     </services>
 </container>
