@@ -21,7 +21,7 @@ final class DalSyncer
 
     private $operations = [];
 
-    protected function __construct(SyncServiceInterface $sync, Context $context, LoggerInterface $logger)
+    private function __construct(SyncServiceInterface $sync, Context $context, LoggerInterface $logger)
     {
         $this->sync = $sync;
         $this->context = $context;
@@ -54,7 +54,7 @@ final class DalSyncer
     public function flush(): self
     {
         $operations = $this->operations;
-        $itemCount = count($this->operations);
+        $itemCount = \count($this->operations);
         $this->operations = [];
         $this->sync->sync($operations, $this->context, new SyncBehavior(true, true));
         $this->logger->info(
@@ -69,7 +69,7 @@ final class DalSyncer
 
     public function clear(): self
     {
-        $itemCount = count($this->operations);
+        $itemCount = \count($this->operations);
         $this->operations = [];
         $this->logger->info(
             \sprintf('[DalSyncer::clear] %d items cleared', $itemCount),
