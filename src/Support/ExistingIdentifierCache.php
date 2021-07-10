@@ -41,28 +41,25 @@ class ExistingIdentifierCache
 
     public function getProductVisibilityId(string $productId, string $salesChannelId): string
     {
-        if (empty($this->cache['productVisibility'])) {
-            $criteria = (new Criteria())
-                ->setLimit(250);
-
-            $repositoryIterator = new RepositoryIterator(
-                $this->dalAccess->repository('product_visibility'),
-                $this->dalAccess->getContext(),
-                $criteria
-            );
-
-            while (($productVisibilities = $repositoryIterator->fetch()) !== null) {
-                /** @var ProductVisibilityEntity $productVisibility */
-                foreach ($productVisibilities->getIterator() as $productVisibility) {
-                    $this->cache['productVisibility'][$productVisibility->getSalesChannelId()][$productVisibility->getProductId()] = $productVisibility->getId();
-                }
-            }
+        if (!\array_key_exists($salesChannelId, $this->cache['productVisibility'])) {
+            $this->cache['productVisibility'][$salesChannelId] = [];
         }
 
-        $this->cache['productVisibility'][$salesChannelId][$productId] ??= Uuid::uuid5(
-            self::NS_PRODUCT_VISIBILITY,
-            \join(';', [$salesChannelId, $productId])
-        )->getHex();
+        if (!\array_key_exists($productId, $this->cache['productVisibility'][$salesChannelId])) {
+            $idCriteria = new Criteria();
+            $idCriteria->addFilter(
+                new EqualsFilter('salesChannelId', $salesChannelId),
+                new EqualsFilter('productId', $productId)
+            );
+
+            $this->cache['productVisibility'][$salesChannelId][$productId] = $this->dalAccess
+                    ->repository('product_visibility')
+                    ->searchIds($idCriteria, $this->dalAccess->getContext())
+                    ->firstId() ?? Uuid::uuid5(
+                        self::NS_PRODUCT_VISIBILITY,
+                        \join(';', [$salesChannelId, $productId])
+                    )->getHex();
+        }
 
         return $this->cache['productVisibility'][$salesChannelId][$productId];
     }
