@@ -9,6 +9,8 @@ use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityCollection;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Indexing\EntityIndexerRegistry;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Aggregation\Bucket\TermsAggregation;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\AggregationResult\Bucket\TermsResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Struct\ArrayStruct;
 use Shopware\Core\Framework\Uuid\Uuid;
@@ -90,6 +92,37 @@ class DalAccess
 
         if (\method_exists(Context::class, 'disableCache')) {
             return $result->disableCache(static fn (Context $context): Context => clone $context);
+        }
+
+        return $result;
+    }
+
+    public function queryValueById(
+        string $repository,
+        string $value,
+        ?Criteria $criteria = null,
+        ?Context $context = null
+    ): array {
+        $criteria ??= new Criteria();
+        $criteria = (clone $criteria)->addAggregation(new TermsAggregation(
+            '_',
+            'id',
+            null,
+            null,
+            new TermsAggregation($value, $value),
+        ));
+        $aggregationResultCollection = $this->repository($repository)->aggregate($criteria, $context ?? $this->getContext());
+        /** @var TermsResult $aggregation */
+        $aggregation = $aggregationResultCollection->get('_');
+        $result = [];
+
+        foreach ($aggregation->getBuckets() as $productIdBucket) {
+            /** @var TermsResult $aggregationResult */
+            $aggregationResult = $productIdBucket->getResult();
+
+            foreach ($aggregationResult->getBuckets() as $productNumberBucket) {
+                $result[$productIdBucket->getKey()] = $productNumberBucket->getKey();
+            }
         }
 
         return $result;
