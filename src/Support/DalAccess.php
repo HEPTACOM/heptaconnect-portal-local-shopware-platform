@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support;
 
+use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Portal;
 use Psr\Container\ContainerInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityCollection;
@@ -18,9 +19,12 @@ class DalAccess
 
     private ContainerInterface $container;
 
-    public function __construct(ContainerInterface $container)
+    private string $configDalIndexingMode;
+
+    public function __construct(ContainerInterface $container, string $configDalIndexingMode)
     {
         $this->container = $container;
+        $this->configDalIndexingMode = $configDalIndexingMode;
     }
 
     public function repository(string $name): EntityRepositoryInterface
@@ -74,8 +78,15 @@ class DalAccess
         $result = Context::createDefaultContext();
 
         $result->addExtension(self::EXTENSION_HEPTACONNECT_CONTEXT, new ArrayStruct());
-        // TODO make configurable
-        $result->addExtension(EntityIndexerRegistry::DISABLE_INDEXING, new ArrayStruct());
+
+        switch ($this->configDalIndexingMode) {
+            case Portal::DAL_INDEX_MODE_NONE:
+                $result->addExtension(EntityIndexerRegistry::DISABLE_INDEXING, new ArrayStruct());
+                break;
+            case Portal::DAL_INDEX_MODE_QUEUE:
+                $result->addExtension(EntityIndexerRegistry::USE_INDEXING_QUEUE, new ArrayStruct());
+                break;
+        }
 
         if (\method_exists(Context::class, 'disableCache')) {
             return $result->disableCache(static fn (Context $context): Context => clone $context);

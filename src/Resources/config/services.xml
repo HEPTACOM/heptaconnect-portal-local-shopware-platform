@@ -24,6 +24,7 @@
 
         <service id="Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess">
             <argument id="shopware_service_container" type="service"/>
+            <argument>%portal_config.dal_indexing_mode%</argument>
         </service>
         <service id="Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\StateMachineTransitionWalker">
             <argument id="Shopware\Core\System\StateMachine\StateMachineRegistry" type="service"/>
