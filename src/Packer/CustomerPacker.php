@@ -28,12 +28,15 @@ class CustomerPacker
 {
     private DalAccess $dalAccess;
 
-    public function __construct(DalAccess $dalAccess)
+    private PortalStorageInterface $portalStorage;
+
+    public function __construct(DalAccess $dalAccess, PortalStorageInterface $portalStorage)
     {
         $this->dalAccess = $dalAccess;
+        $this->portalStorage = $portalStorage;
     }
 
-    public function pack(string $customerId, PortalStorageInterface $portalStorage): Customer
+    public function pack(string $customerId): Customer
     {
         $sourceCustomer = $this->dalAccess->read('customer', [$customerId], [
                 'language.locale',
@@ -94,8 +97,8 @@ class CustomerPacker
         }
 
         $targetCustomer->setCustomerGroup($this->readCustomerGroup($sourceCustomer->getId()));
-        $targetCustomer->setCustomerPriceGroup($this->getCustomerPriceGroup($sourceCustomer, $portalStorage));
-        $targetCustomer->setCustomerDiscountGroup($this->getCustomerDiscountGroup($sourceCustomer, $portalStorage));
+        $targetCustomer->setCustomerPriceGroup($this->getCustomerPriceGroup($sourceCustomer));
+        $targetCustomer->setCustomerDiscountGroup($this->getCustomerDiscountGroup($sourceCustomer));
 
         foreach ($sourceCustomer->getAddresses()->getElements() as $sourceShippingToAddress) {
             if ($sourceCustomer->getDefaultBillingAddressId() !== $sourceShippingToAddress->getId()) {
@@ -172,13 +175,11 @@ class CustomerPacker
         return $targetAddress;
     }
 
-    protected function getCustomerPriceGroup(
-        CustomerEntity $sourceCustomer,
-        PortalStorageInterface $storage
-    ): ?CustomerPriceGroup {
+    protected function getCustomerPriceGroup(CustomerEntity $sourceCustomer): ?CustomerPriceGroup
+    {
         /** @var TagEntity $sourceCustomerTag */
         foreach ($sourceCustomer->getTags() as $sourceCustomerTag) {
-            if (StorageHelper::isCustomerPriceGroupTagId($sourceCustomerTag->getId(), $storage)) {
+            if (StorageHelper::isCustomerPriceGroupTagId($sourceCustomerTag->getId(), $this->portalStorage)) {
                 $targetPriceGroup = (new CustomerPriceGroup())->setCode($sourceCustomerTag->getName());
                 $targetPriceGroup->setPrimaryKey($sourceCustomerTag->getId());
 
@@ -189,13 +190,11 @@ class CustomerPacker
         return null;
     }
 
-    protected function getCustomerDiscountGroup(
-        CustomerEntity $source,
-        PortalStorageInterface $storage
-    ): ?CustomerDiscountGroup {
+    protected function getCustomerDiscountGroup(CustomerEntity $source): ?CustomerDiscountGroup
+    {
         /** @var TagEntity $sourceTag */
         foreach ($source->getTags() as $sourceTag) {
-            if (StorageHelper::isCustomerDiscountGroupTagId($sourceTag->getId(), $storage)) {
+            if (StorageHelper::isCustomerDiscountGroupTagId($sourceTag->getId(), $this->portalStorage)) {
                 $targetDiscountGroup = (new CustomerDiscountGroup())->setCode($sourceTag->getName());
                 $targetDiscountGroup->setPrimaryKey($sourceTag->getId());
 
