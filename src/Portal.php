@@ -27,7 +27,7 @@ class Portal extends PortalContract
             ->setDefaults([
                 self::CONFIG_DAL_INDEX_MODE => self::DAL_INDEX_MODE_NONE,
             ])
-            ->setAllowedTypes(self::DAL_INDEX_MODE_NONE, 'string')
+            ->setAllowedTypes(self::CONFIG_DAL_INDEX_MODE, 'string')
             ->setAllowedValues(self::CONFIG_DAL_INDEX_MODE, [
                 self::DAL_INDEX_MODE_DIRECT,
                 self::DAL_INDEX_MODE_NONE,
