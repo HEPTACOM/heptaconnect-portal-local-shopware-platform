@@ -7,7 +7,6 @@ use Heptacom\HeptaConnect\Dataset\Ecommerce\Currency\Currency;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\Media;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\MediaCollection;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Price\Condition;
-use Heptacom\HeptaConnect\Dataset\Ecommerce\Price\Condition\ValidityPeriodCondition;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Price\Price;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Category;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Manufacturer;
@@ -46,6 +45,8 @@ class ProductUnpacker
 
     private UnitUnpacker $unitUnpacker;
 
+    private PriceConditionUnpacker $priceConditionUnpacker;
+
     private ?SalesChannelCollection $salesChannels = null;
 
     public function __construct(
@@ -53,13 +54,15 @@ class ProductUnpacker
         ExistingIdentifierCache $existingIdentifierCache,
         MediaUnpacker $mediaUnpacker,
         ManufacturerUnpacker $manufacturerUnpacker,
-        UnitUnpacker $unitUnpacker
+        UnitUnpacker $unitUnpacker,
+        PriceConditionUnpacker $priceConditionUnpacker
     ) {
         $this->dalAccess = $dalAccess;
         $this->existingIdentifierCache = $existingIdentifierCache;
         $this->mediaUnpacker = $mediaUnpacker;
         $this->manufacturerUnpacker = $manufacturerUnpacker;
         $this->unitUnpacker = $unitUnpacker;
+        $this->priceConditionUnpacker = $priceConditionUnpacker;
     }
 
     public function unpack(Product $source): array
@@ -263,42 +266,22 @@ class ProductUnpacker
 
             /** @var Condition $sourceCondition */
             foreach ($sourcePrice->getConditions() as $key => $sourceCondition) {
-                $conditionEssence = [];
-                $targetCondition = [
-                    'ruleId' => $ruleId,
-                    'parentId' => $andMergeCondition['id'],
-                    'position' => (int) $key,
-                ];
-
-                if ($sourceCondition instanceof ValidityPeriodCondition) {
-                    $begin = $sourceCondition->getBegin();
-                    $end = $sourceCondition->getEnd();
-
-                    $conditionEssence['type'] = 'dateRange';
-                    $targetCondition['type'] = 'dateRange';
-                    $targetCondition['value'] = [
-                        'useTime' => false,
-                        'fromDate' => ($begin ?? \date_create_from_format('U', '0'))->format(\DateTimeInterface::ATOM),
-                        'toDate' => ($end ?? \date_create('1000 year'))->format(\DateTimeInterface::ATOM),
-                    ];
-
-                    if ($begin instanceof \DateTimeInterface) {
-                        $conditionEssence['fromDate'] = $begin->getTimestamp();
-                        $nameParts[] = \sprintf('vom %s', $begin->format('d.m.Y'));
-                    }
-
-                    if ($end instanceof \DateTimeInterface) {
-                        $conditionEssence['toDate'] = $end->getTimestamp();
-                        $nameParts[] = \sprintf('bis zum %s', $end->format('d.m.Y'));
-                    }
-                } else {
-                    continue;
-                }
+                $conditionResult = $this->priceConditionUnpacker->unpack($sourceCondition);
+                $nameParts[] = $conditionResult[PriceConditionUnpacker::NAME];
+                $conditionEssence = $conditionResult[PriceConditionUnpacker::ESSENCE];
+                unset($conditionResult[PriceConditionUnpacker::NAME], $conditionResult[PriceConditionUnpacker::ESSENCE]);
 
                 \rsort($conditionEssence);
                 $sourceCondition->setPrimaryKey($sourceCondition->getPrimaryKey() ?? RamseyUuid::uuid5('02d88b5b-bacf-4ef9-b17b-6a8a879b88bc', \implode(';', $conditionEssence))->getHex());
-                $targetCondition['id'] = $sourceCondition->getPrimaryKey();
-                $targetConditions[] = $targetCondition;
+                $targetConditions[] = \array_merge(
+                    $conditionResult,
+                    [
+                        'id' => $sourceCondition->getPrimaryKey(),
+                        'ruleId' => $ruleId,
+                        'parentId' => $andMergeCondition['id'],
+                        'position' => (int) $key,
+                    ]
+                );
             }
 
             $rule = [
