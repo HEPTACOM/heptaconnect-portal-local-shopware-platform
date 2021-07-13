@@ -9,14 +9,12 @@ use Heptacom\HeptaConnect\Dataset\Ecommerce\Property\PropertyGroup;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Property\PropertyValue;
 use Heptacom\HeptaConnect\Portal\Base\Builder\FlowComponent;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
-use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\ManufacturerUnpacker;
-use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\PropertyGroupUnpacker;
-use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\PropertyValueUnpacker;
+use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker;
 
 FlowComponent::receiver(Manufacturer::class)->batch(function (
     DalAccess $dal,
     TypedDatasetEntityCollection $manufacturers,
-    ManufacturerUnpacker $unpacker
+    Unpacker\ManufacturerUnpacker $unpacker
 ): void {
     $items = \iterable_to_array($manufacturers->map([$unpacker, 'unpack']));
 
@@ -26,7 +24,7 @@ FlowComponent::receiver(Manufacturer::class)->batch(function (
 FlowComponent::receiver(PropertyGroup::class)->batch(function (
     DalAccess $dal,
     TypedDatasetEntityCollection $propertyGroups,
-    PropertyGroupUnpacker $unpacker
+    Unpacker\PropertyGroupUnpacker $unpacker
 ): void {
     $items = \iterable_to_array($propertyGroups->map([$unpacker, 'unpack']));
 
@@ -36,7 +34,7 @@ FlowComponent::receiver(PropertyGroup::class)->batch(function (
 FlowComponent::receiver(PropertyValue::class)->batch(function (
     DalAccess $dal,
     TypedDatasetEntityCollection $propertyValues,
-    PropertyValueUnpacker $unpacker
+    Unpacker\PropertyValueUnpacker $unpacker
 ): void {
     $items = \iterable_to_array($propertyValues->map([$unpacker, 'unpack']));
 
@@ -46,9 +44,9 @@ FlowComponent::receiver(PropertyValue::class)->batch(function (
 FlowComponent::receiver(Unit::class)->batch(function (
     DalAccess $dal,
     TypedDatasetEntityCollection $propertyValues,
-    PropertyValueUnpacker $unpacker
+    Unpacker\UnitUnpacker $unpacker
 ): void {
     $items = \iterable_to_array($propertyValues->map([$unpacker, 'unpack']));
 
-    $dal->createSyncer()->upsert('property_group_option', $items)->flush();
+    $dal->createSyncer()->upsert('unit', $items)->flush();
 });
