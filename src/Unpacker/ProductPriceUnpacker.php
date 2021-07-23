@@ -152,7 +152,7 @@ class ProductPriceUnpacker
 
         $rule = [
             'id' => $ruleId,
-            'name' => \implode(' und ', $nameParts),
+            'name' => \implode(' and ', $nameParts),
             'priority' => 1,
             'moduleTypes' => [
                 'types' => ['price'],

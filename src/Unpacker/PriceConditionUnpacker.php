@@ -24,12 +24,12 @@ class PriceConditionUnpacker
 
             if ($begin instanceof \DateTimeInterface) {
                 $essence['fromDate'] = $begin->getTimestamp();
-                $nameParts[] = \sprintf('vom %s', $begin->format('d.m.Y'));
+                $nameParts[] = \sprintf('from %s', $begin->format('d.m.Y'));
             }
 
             if ($end instanceof \DateTimeInterface) {
                 $essence['toDate'] = $end->getTimestamp();
-                $nameParts[] = \sprintf('bis zum %s', $end->format('d.m.Y'));
+                $nameParts[] = \sprintf('to %s', $end->format('d.m.Y'));
             }
 
             return [
