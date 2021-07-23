@@ -50,22 +50,44 @@ class ProductReceiver extends ReceiverContract
             ];
         }
 
-        $deleteProductPriceIds = [];
+        $deleteProductPriceStmts = [];
+        $deleteProductVisibilityStmts = [];
 
         if ($productIds !== []) {
-            $productPriceRepository = $this->dal->repository('product_price');
-            $criteria = (new Criteria())->addFilter(new EqualsAnyFilter('productId', $productIds));
-            $dalContext = $this->dal->getContext();
-
             // TODO optimize to delete on unused
-            $deleteProductPriceIds = \array_map(
-                static fn (string $id) => ['id' => $id],
-                $productPriceRepository->searchIds($criteria, $dalContext)->getIds()
+            $deleteProductPriceStmts = \iterable_map(
+                $this->dal->ids('product_price', (new Criteria())->addFilter(new EqualsAnyFilter('productId', $productIds))),
+                static fn (string $id): array => ['id' => $id]
             );
+
+            $deleteProductVisibilityIds = [];
+
+            // Remove non visible sales channel in product visibility
+            foreach ($productUpserts as $productIndex => $productUpsert) {
+                if (!\array_key_exists('visibilities', $productUpsert)) {
+                    continue;
+                }
+
+                foreach ($productUpsert['visibilities'] as $visibilityIndex => $visibility) {
+                    if (!($visibility['visibility'] ?? false)) {
+                        $deleteProductVisibilityIds[] = $visibility['id'];
+
+                        unset($productUpserts[$productIndex]['visibilities'][$visibilityIndex]);
+                    }
+                }
+            }
+
+            if ($deleteProductVisibilityIds !== []) {
+                $deleteProductVisibilityStmts = \iterable_map(
+                    $this->dal->ids('product_visibility', new Criteria($deleteProductVisibilityIds)),
+                    static fn (string $id): array => ['id' => $id]
+                );
+            }
         }
 
         $this->dal->createSyncer()
-            ->delete('product_price', $deleteProductPriceIds)
+            ->delete('product_visibility', $deleteProductVisibilityStmts)
+            ->delete('product_price', $deleteProductPriceStmts)
             ->upsert('product', $productUpserts)
             ->flush();
     }
