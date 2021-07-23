@@ -87,7 +87,7 @@ class ProductUnpacker
             $manufacturer = $this->manufacturerUnpacker->unpack($source->getManufacturer());
         }
 
-        if ($source->getPrices()->count() < 1) {
+        if ($source->getPrices()->count() > 0) {
             $unconditionalPrices = \iterable_to_array(
                 $source->getPrices()->filter(static fn (Price $price): bool => $price->getConditions()->count() === 0)
             );
