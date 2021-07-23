@@ -4,7 +4,8 @@ declare(strict_types=1);
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker;
 
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Price\Condition;
-use Heptacom\HeptaConnect\Dataset\Ecommerce\Price\Condition\ValidityPeriodCondition;
+use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
+use Shopware\Core\Framework\Rule\Rule;
 
 class PriceConditionUnpacker
 {
@@ -12,9 +13,18 @@ class PriceConditionUnpacker
 
     public const ESSENCE = 'heptaConnectEssence';
 
+    private DalAccess $dal;
+
+    private ?array $salesChannelNames = null;
+
+    public function __construct(DalAccess $dal)
+    {
+        $this->dal = $dal;
+    }
+
     public function unpack(Condition $condition): array
     {
-        if ($condition instanceof ValidityPeriodCondition) {
+        if ($condition instanceof Condition\ValidityPeriodCondition) {
             $begin = $condition->getBegin();
             $end = $condition->getEnd();
             $essence = [
@@ -44,6 +54,28 @@ class PriceConditionUnpacker
             ];
         }
 
+        if ($condition instanceof Condition\SalesChannelCondition) {
+            $salesChannelId = $condition->getSalesChannel()->getPrimaryKey();
+
+            return [
+                'type' => 'salesChannel',
+                'value' => [
+                    'salesChannelIds' => [$salesChannelId],
+                    'operator' => Rule::OPERATOR_EQ,
+                ],
+                self::NAME => 'Saleschannel ' . ($this->getSalesChannelNames()[$salesChannelId] ?? $salesChannelId),
+                self::ESSENCE => [
+                    'type' => 'salesChannel',
+                    'salesChannelId' => $salesChannelId,
+                ],
+            ];
+        }
+
         throw new \Exception('Unsupported condition: ' . \get_class($condition));
+    }
+
+    protected function getSalesChannelNames(): array
+    {
+        return $this->salesChannelNames ??= $this->dal->queryValueById('sales_channel', 'name');
     }
 }
