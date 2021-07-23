@@ -68,6 +68,7 @@ class DalAccess implements LoggerAwareInterface
     {
         $repo = $this->repository($reponame);
         $criteria ??= new Criteria();
+        $context ??= $this->getContext();
 
         if (($criteria->getLimit() ?? 0) < 1) {
             $criteria->setLimit(50);
