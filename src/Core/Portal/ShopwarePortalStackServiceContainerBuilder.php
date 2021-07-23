@@ -11,11 +11,13 @@ use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Portal;
 use Psr\Container\ContainerInterface;
 use Shopware\Core\Content\Media\File\FileSaver;
 use Shopware\Core\Content\Media\MediaService;
+use Shopware\Core\Content\Seo\SeoUrlPersister;
 use Shopware\Core\Framework\DataAbstractionLayer\DefinitionInstanceRegistry;
 use Shopware\Core\System\StateMachine\StateMachineRegistry;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\RouterInterface;
 
 class ShopwarePortalStackServiceContainerBuilder implements PortalStackServiceContainerBuilderInterface
 {
@@ -33,6 +35,10 @@ class ShopwarePortalStackServiceContainerBuilder implements PortalStackServiceCo
 
     private ContainerInterface $container;
 
+    private RouterInterface $router;
+
+    private SeoUrlPersister $seoUrlPersister;
+
     public function __construct(
         PortalStackServiceContainerBuilderInterface $decorated,
         StateMachineRegistry $stateMachineRegistry,
@@ -40,7 +46,9 @@ class ShopwarePortalStackServiceContainerBuilder implements PortalStackServiceCo
         RequestStack $requestStack,
         FileSaver $fileSaver,
         MediaService $mediaService,
-        ContainerInterface $container
+        ContainerInterface $container,
+        RouterInterface $router,
+        SeoUrlPersister $seoUrlPersister
     ) {
         $this->decorated = $decorated;
 
@@ -50,6 +58,8 @@ class ShopwarePortalStackServiceContainerBuilder implements PortalStackServiceCo
         $this->fileSaver = $fileSaver;
         $this->mediaService = $mediaService;
         $this->container = $container;
+        $this->router = $router;
+        $this->seoUrlPersister = $seoUrlPersister;
     }
 
     public function build(
@@ -74,6 +84,8 @@ class ShopwarePortalStackServiceContainerBuilder implements PortalStackServiceCo
             RequestStack::class => $this->requestStack,
             FileSaver::class => $this->fileSaver,
             MediaService::class => $this->mediaService,
+            RouterInterface::class => $this->router,
+            SeoUrlPersister::class => $this->seoUrlPersister,
             'shopware_service_container' => $this->container,
         ]);
     }
