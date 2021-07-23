@@ -72,6 +72,19 @@ class ProductPriceUnpacker
             'ruleId' => $ruleId,
         ];
 
+        if ($price->hasAttached(Price::class)) {
+            $listPrice = $price->getAttachment(Price::class);
+
+            if ($listPrice instanceof Price) {
+                $targetPrice['price'][0]['listPrice'] = [
+                    'currencyId' => $currencyId,
+                    'gross' => $listPrice->getGross(),
+                    'net' => $listPrice->getNet(),
+                    'linked' => true,
+                ];
+            }
+        }
+
         if ($currencyId !== Defaults::CURRENCY) {
             $targetPrice['price'][] = [
                 'currencyId' => Defaults::CURRENCY,
@@ -82,7 +95,6 @@ class ProductPriceUnpacker
         }
 
         return $targetPrice;
-
     }
 
     protected function preparePriceRuleId(Price $sourcePrice): string
