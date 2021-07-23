@@ -10,13 +10,13 @@ use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Product;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\ExistingIdentifierCache;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\PrimaryKeyGenerator;
-use Ramsey\Uuid\Uuid as RamseyUuid;
+use Ramsey\Uuid\Uuid;
 use Shopware\Core\Defaults;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 
 class ProductPriceUnpacker
 {
-    public const NS_RULE_ID = 'cbfb4fc6171911eb895d33ddd3eed5ba';
-
     public const NS_CONDITION_CONTAINER_OR = '2caad876178011ebbeba832e03190a18';
 
     public const NS_CONDITION_CONTAINER_AND = 'c51261d8179911ebb4c3f3c3cb39b2d2';
@@ -26,6 +26,8 @@ class ProductPriceUnpacker
     private ExistingIdentifierCache $existingIdentifierCache;
 
     private PriceConditionUnpacker $priceConditionUnpacker;
+
+    private ?string $defaultRuleId = null;
 
     public function __construct(
         DalAccess $dalAccess,
@@ -39,70 +41,17 @@ class ProductPriceUnpacker
 
     public function unpack(Price $price, Product $product): array
     {
+        $ruleId = $this->preparePriceRuleId($price);
         $priceId = PrimaryKeyGenerator::generatePrimaryKey(
                 $price,
                 'da210b7c-fd7c-4aa6-a0ee-846a508482db'
-            ) ?? RamseyUuid::uuid4()->getHex();
+            ) ?? Uuid::uuid4()->getHex();
 
         $price->setPrimaryKey($priceId);
-        $ruleIdSource = RamseyUuid::uuid5(self::NS_RULE_ID, $priceId);
-        $price->setPrimaryKey($price->getPrimaryKey() ?? RamseyUuid::uuid5(
-                $ruleIdSource->toString(),
+        $price->setPrimaryKey($price->getPrimaryKey() ?? Uuid::uuid5(
+                $ruleId,
                 $product->getNumber().'__'.$price->getQuantityStart()
             )->getHex());
-        $ruleId = $ruleIdSource->getHex();
-
-        $targetConditions = [];
-        $nameParts = [];
-
-        $targetConditions[] = $orMergeCondition = [
-            'id' => RamseyUuid::uuid5(self::NS_CONDITION_CONTAINER_OR, $ruleId)->getHex(),
-            'ruleId' => $ruleId,
-            'type' => 'orContainer',
-            'position' => 0,
-            'value' => [],
-        ];
-
-        $targetConditions[] = $andMergeCondition = [
-            'id' => RamseyUuid::uuid5(self::NS_CONDITION_CONTAINER_AND, $ruleId)->getHex(),
-            'ruleId' => $ruleId,
-            'parentId' => $orMergeCondition['id'],
-            'type' => 'andContainer',
-            'position' => 0,
-            'value' => [],
-        ];
-
-        /** @var Condition $sourceCondition */
-        foreach ($price->getConditions() as $key => $sourceCondition) {
-            $conditionResult = $this->priceConditionUnpacker->unpack($sourceCondition);
-            $nameParts[] = $conditionResult[PriceConditionUnpacker::NAME];
-            $conditionEssence = $conditionResult[PriceConditionUnpacker::ESSENCE];
-            unset($conditionResult[PriceConditionUnpacker::NAME], $conditionResult[PriceConditionUnpacker::ESSENCE]);
-
-            \rsort($conditionEssence);
-            $sourceCondition->setPrimaryKey($sourceCondition->getPrimaryKey() ?? RamseyUuid::uuid5('02d88b5b-bacf-4ef9-b17b-6a8a879b88bc', \implode(';', $conditionEssence))->getHex());
-            $targetConditions[] = \array_merge(
-                $conditionResult,
-                [
-                    'id' => $sourceCondition->getPrimaryKey(),
-                    'ruleId' => $ruleId,
-                    'parentId' => $andMergeCondition['id'],
-                    'position' => (int) $key,
-                ]
-            );
-        }
-
-        $rule = [
-            'id' => $ruleId,
-            'name' => \implode(' und ', $nameParts),
-            'priority' => 1,
-            'moduleTypes' => [
-                'types' => ['price'],
-            ],
-            'conditions' => $targetConditions,
-        ];
-
-        $this->dalAccess->repository('rule')->upsert([$rule], $this->dalAccess->getContext());
 
         if ($price->getCurrency() instanceof Currency) {
             // TODO: Use mapping
@@ -133,5 +82,99 @@ class ProductPriceUnpacker
         }
 
         return $targetPrice;
+
+    }
+
+    protected function preparePriceRuleId(Price $sourcePrice): string
+    {
+        $targetConditions = [];
+        $nameParts = [];
+
+        $targetConditions[] = $orMergeCondition = [
+            'id' => static fn(string $ruleId): string => Uuid::uuid5(self::NS_CONDITION_CONTAINER_OR, $ruleId)->getHex(),
+            'type' => 'orContainer',
+            'position' => 0,
+            'value' => [],
+        ];
+
+        $targetConditions[] = $andMergeCondition = [
+            'id' => static fn(string $ruleId): string => Uuid::uuid5(self::NS_CONDITION_CONTAINER_AND, $ruleId)->getHex(),
+            'parentId' => $orMergeCondition['id'],
+            'type' => 'andContainer',
+            'position' => 0,
+            'value' => [],
+        ];
+
+        $conditionEssences = [];
+
+        /** @var Condition $sourceCondition */
+        foreach ($sourcePrice->getConditions() as $key => $sourceCondition) {
+            $conditionResult = $this->priceConditionUnpacker->unpack($sourceCondition);
+            $nameParts[] = $conditionResult[PriceConditionUnpacker::NAME];
+            $conditionEssence = $conditionResult[PriceConditionUnpacker::ESSENCE];
+            unset($conditionResult[PriceConditionUnpacker::NAME], $conditionResult[PriceConditionUnpacker::ESSENCE]);
+
+            \rsort($conditionEssence);
+            $targetConditions[] = \array_merge(
+                $conditionResult,
+                [
+                    'id' => static function (string $ruleId) use ($conditionEssence, $sourceCondition): string {
+                        $sourceCondition->setPrimaryKey($sourceCondition->getPrimaryKey() ?? Uuid::uuid5('f59587c4-35e4-4474-a95b-e04babe60241', \json_encode([
+                                'essence' => $conditionEssence,
+                                'ruleId' => $ruleId,
+                            ]))->getHex());
+
+                        return $sourceCondition->getPrimaryKey();
+                    },
+                    'parentId' => $andMergeCondition['id'],
+                    'position' => (int) $key,
+                ]
+            );
+            $conditionEssences[] = $conditionEssence;
+        }
+
+        if ($conditionEssences === []) {
+            return $this->getDefaultRuleId();
+        }
+
+        \usort($conditionEssences, static fn (array $a, array $b): int => \json_encode($a) <=> \json_encode($b));
+
+        $ruleId = Uuid::uuid5('a7a0d619-3fc3-40f6-b57c-31f895ae652a', \json_encode($conditionEssences))->getHex();
+
+        foreach ($targetConditions as &$targetCondition) {
+            $targetCondition['id'] = \is_callable($targetCondition['id']) ? $targetCondition['id']($ruleId) : $targetCondition['id'];
+            $targetCondition['ruleId'] = $ruleId;
+
+            if (\is_callable($targetCondition['parentId'] ?? null)) {
+                $targetCondition['parentId'] = $targetCondition['parentId']($ruleId);
+            }
+        }
+
+        $rule = [
+            'id' => $ruleId,
+            'name' => \implode(' und ', $nameParts),
+            'priority' => 1,
+            'moduleTypes' => [
+                'types' => ['price'],
+            ],
+            'conditions' => $targetConditions,
+        ];
+
+        $this->dalAccess->repository('rule')->upsert([$rule], $this->dalAccess->getContext());
+
+        return $ruleId;
+    }
+
+    protected function getDefaultRuleId(): string
+    {
+        if ($this->defaultRuleId === null) {
+            $criteria = new Criteria();
+            $criteria->addFilter(new EqualsFilter('conditions.type', 'alwaysValid'));
+            $criteria->setLimit(1);
+
+            $this->defaultRuleId = \iterable_to_array($this->dalAccess->ids('rule', $criteria, $this->dalAccess->getContext()))[0] ?? null;
+        }
+
+        return $this->defaultRuleId;
     }
 }
