@@ -33,8 +33,10 @@ final class DalSyncer
         return new self($sync, $context, $logger);
     }
 
-    public function upsert(string $entity, array $items): self
+    public function upsert(string $entity, iterable $items): self
     {
+        $items = \iterable_to_array($items);
+
         if ($items === []) {
             return $this;
         }
@@ -42,8 +44,10 @@ final class DalSyncer
         return $this->push(self::createSyncOperation(SyncOperation::ACTION_UPSERT, $entity, $items));
     }
 
-    public function delete(string $entity, array $items): self
+    public function delete(string $entity, iterable $items): self
     {
+        $items = \iterable_to_array($items);
+
         if ($items === []) {
             return $this;
         }
