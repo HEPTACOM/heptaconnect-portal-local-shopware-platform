@@ -27,7 +27,7 @@ class PrimaryKeyGenerator
 
         return Uuid::uuid5($namespace, \implode(';', [
             \json_encode($mapping->getPortalNodeKey()),
-            $mapping->getDatasetEntityClassName(),
+            $mapping->getEntityType(),
             $mapping->getExternalId(),
         ]))->getHex();
     }
