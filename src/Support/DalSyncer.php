@@ -19,7 +19,10 @@ final class DalSyncer
 
     private LoggerInterface $logger;
 
-    private $operations = [];
+    /**
+     * @var SyncOperation[]
+     */
+    private array $operations = [];
 
     private function __construct(SyncServiceInterface $sync, Context $context, LoggerInterface $logger)
     {
@@ -33,7 +36,7 @@ final class DalSyncer
         return new self($sync, $context, $logger);
     }
 
-    public function upsert(string $entity, iterable $items): self
+    public function upsert(string $entity, iterable $items, ?string $key = null): self
     {
         $items = \iterable_to_array($items);
 
@@ -41,10 +44,10 @@ final class DalSyncer
             return $this;
         }
 
-        return $this->push(self::createSyncOperation(SyncOperation::ACTION_UPSERT, $entity, $items));
+        return $this->push(self::createSyncOperation(SyncOperation::ACTION_UPSERT, $entity, $items, $key));
     }
 
-    public function delete(string $entity, iterable $items): self
+    public function delete(string $entity, iterable $items, ?string $key = null): self
     {
         $items = \iterable_to_array($items);
 
@@ -52,7 +55,7 @@ final class DalSyncer
             return $this;
         }
 
-        return $this->push(self::createSyncOperation(SyncOperation::ACTION_DELETE, $entity, $items));
+        return $this->push(self::createSyncOperation(SyncOperation::ACTION_DELETE, $entity, $items, $key));
     }
 
     public function flush(): self
@@ -109,9 +112,9 @@ final class DalSyncer
         return $this;
     }
 
-    private static function createSyncOperation(string $action, string $entity, array $payload): SyncOperation
+    private static function createSyncOperation(string $action, string $entity, array $payload, ?string $key): SyncOperation
     {
-        $key = Uuid::randomHex();
+        $key ??= Uuid::randomHex();
         $payload = \array_values($payload);
 
         if (\defined(PlatformRequest::class.'::API_VERSION')) {
