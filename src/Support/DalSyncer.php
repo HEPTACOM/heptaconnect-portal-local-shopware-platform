@@ -7,6 +7,7 @@ use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\Exception\Duplica
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Api\Sync\SyncBehavior;
 use Shopware\Core\Framework\Api\Sync\SyncOperation;
+use Shopware\Core\Framework\Api\Sync\SyncResult;
 use Shopware\Core\Framework\Api\Sync\SyncServiceInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Uuid\Uuid;
@@ -65,12 +66,13 @@ final class DalSyncer
         return $this->push(self::createSyncOperation(SyncOperation::ACTION_DELETE, $entity, $items, $key));
     }
 
-    public function flush(): self
+    public function flush(): SyncResult
     {
         $operations = $this->operations;
         $itemCount = \count($this->operations);
         $this->operations = [];
-        $this->sync->sync($operations, $this->context, new SyncBehavior(true, true));
+        $result = $this->sync->sync($operations, $this->context, new SyncBehavior(true, true));
+
         $this->logger->info(
             \sprintf('[DalSyncer::flush] %d items flushed', $itemCount),
             [
@@ -78,7 +80,7 @@ final class DalSyncer
             ]
         );
 
-        return $this;
+        return $result;
     }
 
     public function clear(): self
