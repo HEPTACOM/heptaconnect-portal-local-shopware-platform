@@ -6,6 +6,7 @@ namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Test\Unit\Support;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalSyncer;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Shopware\Core\Framework\Api\Sync\SyncResult;
 use Shopware\Core\Framework\Api\Sync\SyncServiceInterface;
 use Shopware\Core\Framework\Context;
 
@@ -69,5 +70,25 @@ class DalSyncerTest extends TestCase
         $dalSyncer->delete('foobar', [], 'cbbb15ab5efe4209b79137b13e973b4a');
 
         static::assertCount(0, $dalSyncer->getOperations());
+    }
+
+    public function testContextReplacement(): void
+    {
+        $sync = $this->createMock(SyncServiceInterface::class);
+        $context = $this->createMock(Context::class);
+        $newContext = $this->createMock(Context::class);
+        $logger = $this->createMock(LoggerInterface::class);
+
+        $dalSyncer = DalSyncer::make($sync, $context, $logger);
+        $success = false;
+        $sync->method('sync')->willReturnCallback(function ($_, $b) use ($newContext, &$success): SyncResult {
+            $success = $b === $newContext;
+
+            return new SyncResult([], true);
+        });
+
+        $dalSyncer->flush($newContext);
+
+        static::assertTrue($success);
     }
 }

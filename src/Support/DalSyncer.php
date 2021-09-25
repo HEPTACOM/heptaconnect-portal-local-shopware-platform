@@ -66,12 +66,12 @@ final class DalSyncer
         return $this->push(self::createSyncOperation(SyncOperation::ACTION_DELETE, $entity, $items, $key));
     }
 
-    public function flush(): SyncResult
+    public function flush(?Context $context = null): SyncResult
     {
         $operations = $this->operations;
         $itemCount = \count($this->operations);
         $this->operations = [];
-        $result = $this->sync->sync($operations, $this->context, new SyncBehavior(true, true));
+        $result = $this->sync->sync($operations, $context ?? $this->context, new SyncBehavior(true, true));
 
         $this->logger->info(
             \sprintf('[DalSyncer::flush] %d items flushed', $itemCount),
