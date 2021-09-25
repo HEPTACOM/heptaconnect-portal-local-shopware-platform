@@ -3,27 +3,18 @@ declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support;
 
-use Shopware\Core\Framework\DataAbstractionLayer\Dbal\Common\RepositoryIterator;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
-use Shopware\Core\System\Language\LanguageCollection;
-use Shopware\Core\System\Locale\LocaleCollection;
-
 class Translator
 {
-    private DalAccess $dalAccess;
+    private TranslationLocaleCache $translationLocaleCache;
 
-    private ?array $localeCache = null;
-
-    public function __construct(DalAccess $dalAccess)
+    public function __construct(TranslationLocaleCache $translationLocaleCache)
     {
-        $this->dalAccess = $dalAccess;
+        $this->translationLocaleCache = $translationLocaleCache;
     }
 
     public function filterByValidTranslationKeys(array $translations): array
     {
-        $cache = $this->getLocaleCache();
+        $cache = $this->translationLocaleCache->getLocales();
 
         return \array_intersect_ukey(
             $translations,
@@ -37,7 +28,7 @@ class Translator
     public function exchangeLocaleKeysToLanguageKeys(array $translations): array
     {
         $result = [];
-        $cache = $this->getLocaleCache();
+        $cache = $this->translationLocaleCache->getLocales();
 
         foreach ($translations as $localeKey => $translation) {
             $languageId = \array_search($localeKey, $cache, true);
@@ -51,46 +42,6 @@ class Translator
             }
 
             $result[$languageId] = \array_merge($result[$languageId] ?? [], $translation);
-        }
-
-        return $result;
-    }
-
-    private function getLocaleCache(): array
-    {
-        $result = $this->localeCache;
-
-        if (\is_null($result)) {
-            $criteria = new Criteria();
-            $criteria->setLimit(50);
-            $criteria->addAssociation('languages');
-            $criteria->addFilter(new NotFilter(NotFilter::CONNECTION_OR, [
-                new EqualsFilter('languages.id', null),
-            ]));
-            $iterator = new RepositoryIterator(
-                $this->dalAccess->repository('locale'),
-                $this->dalAccess->getContext(),
-                $criteria,
-            );
-
-            while (!\is_null($entityResult = $iterator->fetch())) {
-                /** @var LocaleCollection $locales */
-                $locales = $entityResult->getEntities();
-
-                foreach ($locales->getIterator() as $locale) {
-                    $languages = $locale->getLanguages();
-
-                    if (!$languages instanceof LanguageCollection) {
-                        continue;
-                    }
-
-                    foreach ($languages->getIterator() as $language) {
-                        $result[$language->getId()] = $locale->getCode();
-                    }
-                }
-            }
-
-            $this->localeCache = $result;
         }
 
         return $result;
