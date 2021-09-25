@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support;
 
+use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\Exception\DuplicateSyncOperationKeyPreventionException;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Api\Sync\SyncBehavior;
 use Shopware\Core\Framework\Api\Sync\SyncOperation;
@@ -36,6 +37,9 @@ final class DalSyncer
         return new self($sync, $context, $logger);
     }
 
+    /**
+     * @throws DuplicateSyncOperationKeyPreventionException
+     */
     public function upsert(string $entity, iterable $items, ?string $key = null): self
     {
         $items = \iterable_to_array($items);
@@ -47,6 +51,9 @@ final class DalSyncer
         return $this->push(self::createSyncOperation(SyncOperation::ACTION_UPSERT, $entity, $items, $key));
     }
 
+    /**
+     * @throws DuplicateSyncOperationKeyPreventionException
+     */
     public function delete(string $entity, iterable $items, ?string $key = null): self
     {
         $items = \iterable_to_array($items);
@@ -96,6 +103,9 @@ final class DalSyncer
         return $this->operations;
     }
 
+    /**
+     * @throws DuplicateSyncOperationKeyPreventionException
+     */
     public function push(SyncOperation $operation): self
     {
         $this->logger->info(
@@ -106,6 +116,10 @@ final class DalSyncer
                 'operationEntity' => $operation->getEntity(),
             ]
         );
+
+        if (\array_key_exists($operation->getKey(), $this->operations)) {
+            throw new DuplicateSyncOperationKeyPreventionException($operation->getKey(), 1632595313);
+        }
 
         $this->operations[$operation->getKey()] = $operation;
 
