@@ -103,14 +103,14 @@ class ProductPriceUnpacker
         $nameParts = [];
 
         $targetConditions[] = $orMergeCondition = [
-            'id' => static fn(string $ruleId): string => Uuid::uuid5(self::NS_CONDITION_CONTAINER_OR, $ruleId)->getHex(),
+            'id' => static fn(string $ruleId): string => (string) Uuid::uuid5(self::NS_CONDITION_CONTAINER_OR, $ruleId)->getHex(),
             'type' => 'orContainer',
             'position' => 0,
             'value' => [],
         ];
 
         $targetConditions[] = $andMergeCondition = [
-            'id' => static fn(string $ruleId): string => Uuid::uuid5(self::NS_CONDITION_CONTAINER_AND, $ruleId)->getHex(),
+            'id' => static fn(string $ruleId): string => (string) Uuid::uuid5(self::NS_CONDITION_CONTAINER_AND, $ruleId)->getHex(),
             'parentId' => $orMergeCondition['id'],
             'type' => 'andContainer',
             'position' => 0,
@@ -151,7 +151,7 @@ class ProductPriceUnpacker
 
         \usort($conditionEssences, static fn (array $a, array $b): int => \json_encode($a) <=> \json_encode($b));
 
-        $ruleId = Uuid::uuid5('a7a0d619-3fc3-40f6-b57c-31f895ae652a', \json_encode($conditionEssences))->getHex();
+        $ruleId = (string) Uuid::uuid5('a7a0d619-3fc3-40f6-b57c-31f895ae652a', \json_encode($conditionEssences))->getHex();
 
         foreach ($targetConditions as &$targetCondition) {
             $targetCondition['id'] = \is_callable($targetCondition['id']) ? $targetCondition['id']($ruleId) : $targetCondition['id'];
