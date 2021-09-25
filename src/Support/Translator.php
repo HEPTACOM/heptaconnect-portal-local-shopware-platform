@@ -56,28 +56,6 @@ class Translator
         return $result;
     }
 
-    public function getIngredientTranslation(array $translatableName): array
-    {
-        $translations = [];
-        foreach ($translatableName as $locale => $value) {
-            $name = \trim($value);
-
-            if ($name === '') {
-                continue;
-            }
-
-            $translations[$locale] = [
-                'name' => $name,
-            ];
-        }
-
-        $translations[Defaults::LANGUAGE_SYSTEM] = [
-            'name' => $defaultName ?? $name,
-        ];
-
-        return $translations;
-    }
-
     private function getLocaleCache(): array
     {
         $result = $this->localeCache;

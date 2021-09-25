@@ -4,9 +4,7 @@ declare(strict_types=1);
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support;
 
 use Ramsey\Uuid\Uuid;
-use Shopware\Core\Content\Product\Aggregate\ProductMedia\ProductMediaEntity;
 use Shopware\Core\Defaults;
-use Shopware\Core\Framework\DataAbstractionLayer\Dbal\Common\RepositoryIterator;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 
@@ -29,6 +27,7 @@ class ExistingIdentifierCache
         'currency' => [],
         'propertyGroup' => [],
         'language' => [],
+        'productMedia' => [],
     ];
 
     private DalAccess $dalAccess;
@@ -65,30 +64,20 @@ class ExistingIdentifierCache
 
     public function getProductMediaId(string $productId, string $mediaId): string
     {
-        if (empty($this->cache['productMedia'])) {
-            $criteria = (new Criteria())
-                ->setLimit(250);
+        $criteria = (new Criteria())
+            ->addFilter(new EqualsFilter('productId', $productId))
+            ->addFilter(new EqualsFilter('mediaId', $mediaId))
+            ->setLimit(1);
 
-            $repositoryIterator = new RepositoryIterator(
-                $this->dalAccess->repository('product_media'),
-                $this->dalAccess->getContext(),
-                $criteria
-            );
+        $this->cache['productMedia'][$mediaId][$productId] ??= $this->dalAccess
+            ->repository('product_media')
+            ->searchIds($criteria, $this->dalAccess->getContext())
+            ->firstId();
 
-            while (($productMedias = $repositoryIterator->fetch()) !== null) {
-                /** @var ProductMediaEntity $productMedia */
-                foreach ($productMedias->getIterator() as $productMedia) {
-                    $this->cache['productMedia'][$productMedia->getMediaId()][$productMedia->getProductId()] = $productMedia->getId();
-                }
-            }
-        }
-
-        $this->cache['productMedia'][$mediaId][$productId] ??= Uuid::uuid5(
+        return $this->cache['productMedia'][$mediaId][$productId] ??= (string) Uuid::uuid5(
             self::NS_PRODUCT_MEDIA,
             \join(';', [$mediaId, $productId])
         )->getHex();
-
-        return $this->cache['productMedia'][$mediaId][$productId];
     }
 
     public function getTaxId(float $taxRate): string

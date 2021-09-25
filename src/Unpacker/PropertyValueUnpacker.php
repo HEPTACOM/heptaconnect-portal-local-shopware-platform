@@ -17,7 +17,7 @@ class PropertyValueUnpacker
         // TODO translations
         return [
             'id' => $id,
-            'propertyGroupId' => $propertyValue->getGroup()->getPrimaryKey(),
+            'groupId' => $propertyValue->getGroup()->getPrimaryKey(),
             'name' => $propertyValue->getName()->getFallback(),
         ];
     }
