@@ -51,12 +51,18 @@ class ProductReceiver extends ReceiverContract
         }
 
         $deleteProductPriceStmts = [];
+        $deleteProductPropertyStmts = [];
         $deleteProductVisibilityStmts = [];
 
         if ($productIds !== []) {
             // TODO optimize to delete on unused
             $deleteProductPriceStmts = \iterable_map(
                 $this->dal->ids('product_price', (new Criteria())->addFilter(new EqualsAnyFilter('productId', $productIds))),
+                static fn (string $id): array => ['id' => $id]
+            );
+            // TODO optimize to delete on unused
+            $deleteProductPropertyStmts = \iterable_map(
+                $this->dal->ids('product_property', (new Criteria())->addFilter(new EqualsAnyFilter('productId', $productIds))),
                 static fn (string $id): array => ['id' => $id]
             );
 
@@ -87,6 +93,7 @@ class ProductReceiver extends ReceiverContract
 
         $this->dal->createSyncer()
             ->delete('product_visibility', $deleteProductVisibilityStmts)
+            ->delete('product_property', $deleteProductPropertyStmts)
             ->delete('product_price', $deleteProductPriceStmts)
             ->upsert('product', $productUpserts)
             ->flush();

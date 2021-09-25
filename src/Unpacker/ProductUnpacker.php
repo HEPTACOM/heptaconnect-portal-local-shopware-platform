@@ -10,6 +10,7 @@ use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Category;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Manufacturer;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Product;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Unit;
+use Heptacom\HeptaConnect\Dataset\Ecommerce\Property\PropertyValue;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Tax\TaxGroupRule;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\ExistingIdentifierCache;
@@ -145,6 +146,15 @@ class ProductUnpacker
                 \array_filter(
                     \iterable_to_array($source->getCategories()),
                     fn (Category $category) => $this->dalAccess->idExists('category', $category->getPrimaryKey())
+                )
+            ),
+            'properties' => \array_map(
+                static fn (Category $category): array => [
+                    'id' => $category->getPrimaryKey(),
+                ],
+                \array_filter(
+                    \iterable_to_array($source->getProperties()),
+                    fn (PropertyValue $pv): bool => $this->dalAccess->idExists('property_group_option', $pv->getPrimaryKey())
                 )
             ),
             'translations' => $this->unpackTranslations($source),

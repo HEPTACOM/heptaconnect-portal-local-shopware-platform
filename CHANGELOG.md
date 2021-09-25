@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Add optional context parameter to `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalSyncer::flush` allowing an override of the used modified context
 * Extract locale code caching from `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\Translator` into new service `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\TranslationLocaleCache`
 * New protected method `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\ProductUnpacker::unpackTranslations` adds support for translated product content. By default `name` and `description` is supported
+* Add product property assignments in return value of `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\ProductUnpacker::unpack`
+* Add cleanup of previously imported product properties in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\ProductReceiver`
 
 ### Changed
 
