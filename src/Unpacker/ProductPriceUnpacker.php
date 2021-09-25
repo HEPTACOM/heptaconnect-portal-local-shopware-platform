@@ -6,8 +6,9 @@ namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Currency\Currency;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Price\Condition;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Price\Price;
-use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Product;
+use Heptacom\HeptaConnect\Dataset\Ecommerce\Price\PriceCollection;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
+use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalSyncer;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\ExistingIdentifierCache;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\PrimaryKeyGenerator;
 use Ramsey\Uuid\Uuid;
@@ -39,9 +40,32 @@ class ProductPriceUnpacker
         $this->priceConditionUnpacker = $priceConditionUnpacker;
     }
 
-    public function unpack(Price $price, Product $product): array
+    public function unpack(PriceCollection $sourceCollection, string $productNumber): iterable
     {
-        $ruleId = $this->preparePriceRuleId($price);
+        $syncer = $this->dalAccess->createSyncer();
+
+        $ruleIds = [];
+
+        /** @var Price $sourcePrice */
+        foreach ($sourceCollection as $key => $sourcePrice) {
+            $ruleIds[$key] = $this->preparePriceRuleId($sourcePrice, $syncer);
+        }
+
+        if ($syncer->getOperations() !== []) {
+            $syncer->flush();
+        }
+
+        /** @var Price $sourcePrice */
+        foreach ($sourceCollection as $key => $sourcePrice) {
+            /** @var string $ruleId */
+            $ruleId = $ruleIds[$key];
+
+            yield $this->unpackProductPrice($sourcePrice, $productNumber, $ruleId);
+        }
+    }
+
+    protected function unpackProductPrice(Price $price, string $productNumber, string $ruleId): array
+    {
         $priceId = PrimaryKeyGenerator::generatePrimaryKey(
                 $price,
                 'da210b7c-fd7c-4aa6-a0ee-846a508482db'
@@ -50,7 +74,7 @@ class ProductPriceUnpacker
         $price->setPrimaryKey($priceId);
         $price->setPrimaryKey($price->getPrimaryKey() ?? Uuid::uuid5(
                 $ruleId,
-                $product->getNumber().'__'.$price->getQuantityStart()
+                $productNumber.'__'.$price->getQuantityStart()
             )->getHex());
 
         if ($price->getCurrency() instanceof Currency) {
@@ -97,7 +121,7 @@ class ProductPriceUnpacker
         return $targetPrice;
     }
 
-    protected function preparePriceRuleId(Price $sourcePrice): string
+    protected function preparePriceRuleId(Price $sourcePrice, DalSyncer $syncer): string
     {
         $targetConditions = [];
         $nameParts = [];
@@ -172,7 +196,9 @@ class ProductPriceUnpacker
             'conditions' => $targetConditions,
         ];
 
-        $this->dalAccess->repository('rule')->upsert([$rule], $this->dalAccess->getContext());
+        if (!$this->dalAccess->idExists('rule', $ruleId)) {
+            $syncer->upsert('rule', [$rule]);
+        }
 
         return $ruleId;
     }

@@ -75,7 +75,7 @@ class ProductUnpacker
         }
 
         $taxId = $this->unpackTaxId($source);
-        $prices = \iterable_to_array($this->unpackPrices($source));
+        $prices = \iterable_to_array($this->productPriceUnpacker->unpack($source->getPrices(), $source->getNumber()));
         $active = $source->isActive();
         $price = [
             [
@@ -217,14 +217,6 @@ class ProductUnpacker
         }
 
         throw new \Exception(\sprintf('The product has no tax rules. Product number: %s', $source->getNumber()));
-    }
-
-    /**
-     * @return array[]
-     */
-    protected function unpackPrices(Product $source): array
-    {
-        return \iterable_to_array($source->getPrices()->map(fn (Price $p): array => $this->productPriceUnpacker->unpack($p, $source)));
     }
 
     protected function getProductMedias(Product $product): array
