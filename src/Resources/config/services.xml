@@ -6,7 +6,7 @@
 >
     <services>
         <prototype
-            exclude="../../{Core,Support/UnwalkablePathException.php}"
+            exclude="../../{Core,Support/UnwalkablePathException.php,Support/Exception/DuplicateSyncOperationKeyPreventionException.php}"
             namespace="Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\"
             resource="../../*"
         />
