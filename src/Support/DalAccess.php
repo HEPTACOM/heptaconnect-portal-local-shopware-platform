@@ -143,16 +143,24 @@ class DalAccess implements LoggerAwareInterface
             new TermsAggregation($value, $value),
         ));
         $aggregationResultCollection = $this->repository($repository)->aggregate($criteria, $context ?? $this->getContext());
-        /** @var TermsResult $aggregation */
-        $aggregation = $aggregationResultCollection->get('_');
         $result = [];
 
-        foreach ($aggregation->getBuckets() as $productIdBucket) {
-            /** @var TermsResult $aggregationResult */
-            $aggregationResult = $productIdBucket->getResult();
+        if (!$aggregationResultCollection->has('_')) {
+            return [];
+        }
 
-            foreach ($aggregationResult->getBuckets() as $productNumberBucket) {
-                $result[$productIdBucket->getKey()] = $productNumberBucket->getKey();
+        $terms = $aggregationResultCollection->get('_');
+
+        if (!$terms instanceof TermsResult) {
+            return [];
+        }
+
+        foreach ($terms->getBuckets() as $idBucket) {
+            /** @var TermsResult $aggregationResult */
+            $aggregationResult = $idBucket->getResult();
+
+            foreach ($aggregationResult->getBuckets() as $valueBucket) {
+                $result[$idBucket->getKey()] = $valueBucket->getKey();
             }
         }
 
