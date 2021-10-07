@@ -149,8 +149,8 @@ class ProductUnpacker
                 )
             ),
             'properties' => \array_map(
-                static fn (Category $category): array => [
-                    'id' => $category->getPrimaryKey(),
+                static fn (PropertyValue $pv): array => [
+                    'id' => $pv->getPrimaryKey(),
                 ],
                 \array_filter(
                     \iterable_to_array($source->getProperties()),
