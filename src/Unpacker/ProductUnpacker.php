@@ -292,6 +292,6 @@ class ProductUnpacker
             $result[$localeCode]['description'] ??= $source->getDescription()->getTranslation($localeCode);
         }
 
-        return [];
+        return $result;
     }
 }
