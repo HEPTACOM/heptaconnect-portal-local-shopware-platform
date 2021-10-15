@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support;
 
+use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\Exception\DuplicateSyncOperationKeyPreventionException;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Api\Sync\SyncBehavior;
 use Shopware\Core\Framework\Api\Sync\SyncOperation;
+use Shopware\Core\Framework\Api\Sync\SyncResult;
 use Shopware\Core\Framework\Api\Sync\SyncServiceInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Uuid\Uuid;
@@ -19,7 +21,10 @@ final class DalSyncer
 
     private LoggerInterface $logger;
 
-    private $operations = [];
+    /**
+     * @var SyncOperation[]
+     */
+    private array $operations = [];
 
     private function __construct(SyncServiceInterface $sync, Context $context, LoggerInterface $logger)
     {
@@ -33,7 +38,10 @@ final class DalSyncer
         return new self($sync, $context, $logger);
     }
 
-    public function upsert(string $entity, iterable $items): self
+    /**
+     * @throws DuplicateSyncOperationKeyPreventionException
+     */
+    public function upsert(string $entity, iterable $items, ?string $key = null): self
     {
         $items = \iterable_to_array($items);
 
@@ -41,10 +49,13 @@ final class DalSyncer
             return $this;
         }
 
-        return $this->push(self::createSyncOperation(SyncOperation::ACTION_UPSERT, $entity, $items));
+        return $this->push(self::createSyncOperation(SyncOperation::ACTION_UPSERT, $entity, $items, $key));
     }
 
-    public function delete(string $entity, iterable $items): self
+    /**
+     * @throws DuplicateSyncOperationKeyPreventionException
+     */
+    public function delete(string $entity, iterable $items, ?string $key = null): self
     {
         $items = \iterable_to_array($items);
 
@@ -52,15 +63,16 @@ final class DalSyncer
             return $this;
         }
 
-        return $this->push(self::createSyncOperation(SyncOperation::ACTION_DELETE, $entity, $items));
+        return $this->push(self::createSyncOperation(SyncOperation::ACTION_DELETE, $entity, $items, $key));
     }
 
-    public function flush(): self
+    public function flush(?Context $context = null): SyncResult
     {
         $operations = $this->operations;
         $itemCount = \count($this->operations);
         $this->operations = [];
-        $this->sync->sync($operations, $this->context, new SyncBehavior(true, true));
+        $result = $this->sync->sync($operations, $context ?? $this->context, new SyncBehavior(true, true));
+
         $this->logger->info(
             \sprintf('[DalSyncer::flush] %d items flushed', $itemCount),
             [
@@ -68,7 +80,7 @@ final class DalSyncer
             ]
         );
 
-        return $this;
+        return $result;
     }
 
     public function clear(): self
@@ -93,6 +105,9 @@ final class DalSyncer
         return $this->operations;
     }
 
+    /**
+     * @throws DuplicateSyncOperationKeyPreventionException
+     */
     public function push(SyncOperation $operation): self
     {
         $this->logger->info(
@@ -104,14 +119,18 @@ final class DalSyncer
             ]
         );
 
+        if (\array_key_exists($operation->getKey(), $this->operations)) {
+            throw new DuplicateSyncOperationKeyPreventionException($operation->getKey(), 1632595313);
+        }
+
         $this->operations[$operation->getKey()] = $operation;
 
         return $this;
     }
 
-    private static function createSyncOperation(string $action, string $entity, array $payload): SyncOperation
+    private static function createSyncOperation(string $action, string $entity, array $payload, ?string $key): SyncOperation
     {
-        $key = Uuid::randomHex();
+        $key ??= Uuid::randomHex();
         $payload = \array_values($payload);
 
         if (\defined(PlatformRequest::class.'::API_VERSION')) {

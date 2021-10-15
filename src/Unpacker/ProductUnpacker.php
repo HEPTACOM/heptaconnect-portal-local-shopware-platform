@@ -10,10 +10,12 @@ use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Category;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Manufacturer;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Product;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Unit;
+use Heptacom\HeptaConnect\Dataset\Ecommerce\Property\PropertyValue;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Tax\TaxGroupRule;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\ExistingIdentifierCache;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\PrimaryKeyGenerator;
+use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\TranslationLocaleCache;
 use Shopware\Core\Content\Product\Aggregate\ProductVisibility\ProductVisibilityDefinition;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -38,6 +40,8 @@ class ProductUnpacker
 
     private ProductPriceUnpacker $productPriceUnpacker;
 
+    private TranslationLocaleCache $translationLocaleCache;
+
     private ?SalesChannelCollection $salesChannels = null;
 
     public function __construct(
@@ -46,7 +50,8 @@ class ProductUnpacker
         MediaUnpacker $mediaUnpacker,
         ManufacturerUnpacker $manufacturerUnpacker,
         UnitUnpacker $unitUnpacker,
-        ProductPriceUnpacker $productPriceUnpacker
+        ProductPriceUnpacker $productPriceUnpacker,
+        TranslationLocaleCache $translationLocaleCache
     ) {
         $this->dalAccess = $dalAccess;
         $this->existingIdentifierCache = $existingIdentifierCache;
@@ -54,6 +59,7 @@ class ProductUnpacker
         $this->manufacturerUnpacker = $manufacturerUnpacker;
         $this->unitUnpacker = $unitUnpacker;
         $this->productPriceUnpacker = $productPriceUnpacker;
+        $this->translationLocaleCache = $translationLocaleCache;
     }
 
     public function unpack(Product $source): array
@@ -70,7 +76,7 @@ class ProductUnpacker
         }
 
         $taxId = $this->unpackTaxId($source);
-        $prices = \iterable_to_array($this->unpackPrices($source));
+        $prices = \iterable_to_array($this->productPriceUnpacker->unpack($source->getPrices(), $source->getNumber()));
         $active = $source->isActive();
         $price = [
             [
@@ -124,8 +130,6 @@ class ProductUnpacker
             'purchaseSteps' => (int) \max($source->getPurchaseQuantity() ?? 1, 1),
             'isCloseout' => true,
             'shippingFree' => false,
-            'name' => $source->getName()->getFallback(),
-            'description' => $source->getDescription()->getFallback(),
             'visibilities' => $visibilities,
             'taxId' => $taxId,
             ($unit === null ? 'unitId' : 'unit') => $unit,
@@ -144,6 +148,16 @@ class ProductUnpacker
                     fn (Category $category) => $this->dalAccess->idExists('category', $category->getPrimaryKey())
                 )
             ),
+            'properties' => \array_map(
+                static fn (PropertyValue $pv): array => [
+                    'id' => $pv->getPrimaryKey(),
+                ],
+                \array_filter(
+                    \iterable_to_array($source->getProperties()),
+                    fn (PropertyValue $pv): bool => $this->dalAccess->idExists('property_group_option', $pv->getPrimaryKey())
+                )
+            ),
+            'translations' => $this->unpackTranslations($source),
         ];
     }
 
@@ -215,14 +229,6 @@ class ProductUnpacker
         throw new \Exception(\sprintf('The product has no tax rules. Product number: %s', $source->getNumber()));
     }
 
-    /**
-     * @return array[]
-     */
-    protected function unpackPrices(Product $source): array
-    {
-        return \iterable_to_array($source->getPrices()->map(fn (Price $p): array => $this->productPriceUnpacker->unpack($p, $source)));
-    }
-
     protected function getProductMedias(Product $product): array
     {
         $productId = $product->getPrimaryKey();
@@ -267,5 +273,25 @@ class ProductUnpacker
         ], $unpackedMedias);
 
         return $productMedias;
+    }
+
+    protected function unpackTranslations(Product $source): array
+    {
+        $result = [];
+
+        foreach ($this->translationLocaleCache->getLocales() as $localeCode) {
+            $result[$localeCode]['name'] = null;
+            $result[$localeCode]['description'] = null;
+        }
+
+        foreach ($source->getName()->getLocaleKeys() as $localeCode) {
+            $result[$localeCode]['name'] ??= $source->getName()->getTranslation($localeCode);
+        }
+
+        foreach ($source->getDescription()->getLocaleKeys() as $localeCode) {
+            $result[$localeCode]['description'] ??= $source->getDescription()->getTranslation($localeCode);
+        }
+
+        return $result;
     }
 }
