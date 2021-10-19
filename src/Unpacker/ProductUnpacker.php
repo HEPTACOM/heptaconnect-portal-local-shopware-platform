@@ -280,8 +280,8 @@ class ProductUnpacker
         $result = [];
 
         foreach ($this->translationLocaleCache->getLocales() as $localeCode) {
-            $result[$localeCode]['name'] = null;
-            $result[$localeCode]['description'] = null;
+            $result[$localeCode]['name'] = $source->getName()->getTranslation($localeCode, true);
+            $result[$localeCode]['description'] = $source->getDescription()->getTranslation($localeCode, true);
         }
 
         foreach ($source->getName()->getLocaleKeys() as $localeCode) {
