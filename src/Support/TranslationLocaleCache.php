@@ -3,37 +3,25 @@ declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support;
 
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
+use Shopware\Core\System\Language\LanguageLoaderInterface;
 
 class TranslationLocaleCache
 {
-    private DalAccess $dalAccess;
+    private LanguageLoaderInterface $languageLoader;
 
     private ?array $localeCache = null;
 
-    public function __construct(DalAccess $dalAccess)
+    public function __construct(LanguageLoaderInterface $languageLoader)
     {
-        $this->dalAccess = $dalAccess;
+        $this->languageLoader = $languageLoader;
     }
 
     public function getLocales(): array
     {
-        $result = $this->localeCache;
-
-        if (\is_array($result)) {
-            return $result;
-        }
-
-        $criteria = new Criteria();
-        $criteria->addFilter(new NotFilter(MultiFilter::CONNECTION_AND, [
-            new EqualsFilter('languages.id', null),
-        ]));
-
-        $this->localeCache = $this->dalAccess->queryValueById('locale', 'code', $criteria);
-
-        return $this->localeCache;
+        return $this->localeCache ??= \array_column(
+            $this->languageLoader->loadLanguages(),
+            'code',
+            'id'
+        );
     }
 }

@@ -13,6 +13,7 @@ use Shopware\Core\Content\Media\File\FileSaver;
 use Shopware\Core\Content\Media\MediaService;
 use Shopware\Core\Content\Seo\SeoUrlPersister;
 use Shopware\Core\Framework\DataAbstractionLayer\DefinitionInstanceRegistry;
+use Shopware\Core\System\Language\LanguageLoaderInterface;
 use Shopware\Core\System\StateMachine\StateMachineRegistry;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -39,6 +40,8 @@ class ShopwarePortalStackServiceContainerBuilder implements PortalStackServiceCo
 
     private SeoUrlPersister $seoUrlPersister;
 
+    private LanguageLoaderInterface $languageLoader;
+
     public function __construct(
         PortalStackServiceContainerBuilderInterface $decorated,
         StateMachineRegistry $stateMachineRegistry,
@@ -48,7 +51,8 @@ class ShopwarePortalStackServiceContainerBuilder implements PortalStackServiceCo
         MediaService $mediaService,
         ContainerInterface $container,
         RouterInterface $router,
-        SeoUrlPersister $seoUrlPersister
+        SeoUrlPersister $seoUrlPersister,
+        LanguageLoaderInterface $languageLoader
     ) {
         $this->decorated = $decorated;
 
@@ -60,6 +64,7 @@ class ShopwarePortalStackServiceContainerBuilder implements PortalStackServiceCo
         $this->container = $container;
         $this->router = $router;
         $this->seoUrlPersister = $seoUrlPersister;
+        $this->languageLoader = $languageLoader;
     }
 
     public function build(
@@ -86,6 +91,7 @@ class ShopwarePortalStackServiceContainerBuilder implements PortalStackServiceCo
             MediaService::class => $this->mediaService,
             RouterInterface::class => $this->router,
             SeoUrlPersister::class => $this->seoUrlPersister,
+            LanguageLoaderInterface::class => $this->languageLoader,
             'shopware_service_container' => $this->container,
         ]);
     }
