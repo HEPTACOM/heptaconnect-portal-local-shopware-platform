@@ -47,7 +47,7 @@ class CustomerGroupReceiver extends ReceiverContract
         ];
 
         if (!$this->dal->idExists('customer_group', $id)) {
-            $id ??= PrimaryKeyGenerator::generatePrimaryKey($entity, 'b72df67c-426d-42e1-846c-10f7815c1761') ?? Uuid::uuid5('7ead4bd5-1d7c-4a5e-be6b-6f5f709dfb3c', $entity->getCode())->getHex();
+            $id ??= PrimaryKeyGenerator::generatePrimaryKey($entity, 'b72df67c-426d-42e1-846c-10f7815c1761') ?? (string) Uuid::uuid5('7ead4bd5-1d7c-4a5e-be6b-6f5f709dfb3c', $entity->getCode())->getHex();
 
             $repository->create([[
                 'id' => $id,

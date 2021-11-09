@@ -53,7 +53,7 @@ class ExistingIdentifierCache
             $this->cache['productVisibility'][$salesChannelId][$productId] = $this->dalAccess
                     ->repository('product_visibility')
                     ->searchIds($idCriteria, $this->dalAccess->getContext())
-                    ->firstId() ?? Uuid::uuid5(
+                    ->firstId() ?? (string) Uuid::uuid5(
                         self::NS_PRODUCT_VISIBILITY,
                         \join(';', [$salesChannelId, $productId])
                     )->getHex();
@@ -94,7 +94,7 @@ class ExistingIdentifierCache
                 ->firstId();
 
             if (!\is_string($taxId)) {
-                $taxId = Uuid::uuid5(self::NS_TAX, $taxRateKey)->getHex();
+                $taxId = (string) Uuid::uuid5(self::NS_TAX, $taxRateKey)->getHex();
 
                 $this->dalAccess->repository('tax')->create([[
                     'id' => $taxId,
@@ -128,7 +128,7 @@ class ExistingIdentifierCache
                 ->firstId();
 
             if (!\is_string($currencyId)) {
-                $currencyId = Uuid::uuid5(self::NS_CURRENCY, $isoCode)->getHex();
+                $currencyId = (string) Uuid::uuid5(self::NS_CURRENCY, $isoCode)->getHex();
 
                 $this->dalAccess->repository('currency')->create([[
                     'id' => $currencyId,
@@ -157,7 +157,7 @@ class ExistingIdentifierCache
     public function getPropertyGroup(string $type): string
     {
         if (!isset($this->cache['propertyGroup'][$type])) {
-            $expectedPropertyGroupId = Uuid::uuid5(self::NS_PROPERTY_GROUP, $type)->getHex();
+            $expectedPropertyGroupId = (string) Uuid::uuid5(self::NS_PROPERTY_GROUP, $type)->getHex();
             $criteria = (new Criteria([$expectedPropertyGroupId]))
                 ->setLimit(1);
 

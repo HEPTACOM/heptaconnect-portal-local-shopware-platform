@@ -37,7 +37,7 @@ abstract class DumpReceiver extends ReceiverContract
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $id = PrimaryKeyGenerator::generatePrimaryKey($entity, '0ff4e0c2-fc66-4c40-a572-66dee8195f09') ?? Uuid::uuid4()->getHex();
+        $id = PrimaryKeyGenerator::generatePrimaryKey($entity, '0ff4e0c2-fc66-4c40-a572-66dee8195f09') ?? (string) Uuid::uuid4()->getHex();
 
         $className = \basename(\str_replace('\\', '/', $this->supports()));
         $dumpDir = __DIR__.'/../../__dump/'.$className.'/';
