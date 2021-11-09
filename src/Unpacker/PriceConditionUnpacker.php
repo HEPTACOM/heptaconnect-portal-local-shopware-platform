@@ -63,7 +63,7 @@ class PriceConditionUnpacker
                     'salesChannelIds' => [$salesChannelId],
                     'operator' => Rule::OPERATOR_EQ,
                 ],
-                self::NAME => 'Saleschannel ' . ($this->getSalesChannelNames()[$salesChannelId] ?? $salesChannelId),
+                self::NAME => \sprintf('Saleschannel %s', $this->getSalesChannelNames()[$salesChannelId] ?? $salesChannelId),
                 self::ESSENCE => [
                     'type' => 'salesChannel',
                     'salesChannelId' => $salesChannelId,
@@ -71,7 +71,7 @@ class PriceConditionUnpacker
             ];
         }
 
-        throw new \Exception('Unsupported condition: ' . \get_class($condition));
+        throw new \Exception(\sprintf('Unsupported condition: %s', \get_class($condition)));
     }
 
     protected function getSalesChannelNames(): array

@@ -127,14 +127,14 @@ class ProductPriceUnpacker
         $nameParts = [];
 
         $targetConditions[] = $orMergeCondition = [
-            'id' => static fn(string $ruleId): string => (string) Uuid::uuid5(self::NS_CONDITION_CONTAINER_OR, $ruleId)->getHex(),
+            'id' => static fn (string $ruleId): string => (string) Uuid::uuid5(self::NS_CONDITION_CONTAINER_OR, $ruleId)->getHex(),
             'type' => 'orContainer',
             'position' => 0,
             'value' => [],
         ];
 
         $targetConditions[] = $andMergeCondition = [
-            'id' => static fn(string $ruleId): string => (string) Uuid::uuid5(self::NS_CONDITION_CONTAINER_AND, $ruleId)->getHex(),
+            'id' => static fn (string $ruleId): string => (string) Uuid::uuid5(self::NS_CONDITION_CONTAINER_AND, $ruleId)->getHex(),
             'parentId' => $orMergeCondition['id'],
             'type' => 'andContainer',
             'position' => 0,
