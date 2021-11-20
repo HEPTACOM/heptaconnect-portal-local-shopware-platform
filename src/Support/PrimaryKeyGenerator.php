@@ -25,7 +25,7 @@ class PrimaryKeyGenerator
             return null;
         }
 
-        return Uuid::uuid5($namespace, \implode(';', [
+        return (string) Uuid::uuid5($namespace, \implode(';', [
             \json_encode($mapping->getPortalNodeKey()),
             $mapping->getEntityType(),
             $mapping->getExternalId(),

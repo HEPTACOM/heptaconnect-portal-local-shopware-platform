@@ -63,7 +63,7 @@ class CustomerReceiver extends ReceiverContract
         $dalContext = $this->dal->getContext();
         $entity->setPrimaryKey(
             PrimaryKeyGenerator::generatePrimaryKey($entity, '57854452-bbf4-4ba4-ab27-a52723c2f634') ??
-            Uuid::uuid5('36e684e2-e182-4d60-a180-9b61a4cce982', $entity->getNumber())->getHex()
+            (string) Uuid::uuid5('36e684e2-e182-4d60-a180-9b61a4cce982', $entity->getNumber())->getHex()
         );
 
         if (!$this->dal->idExists('customer', $entity->getPrimaryKey())) {
@@ -304,7 +304,7 @@ class CustomerReceiver extends ReceiverContract
         if (!$tagId) {
             $tagRepository->create([
                 [
-                    'id' => $tagId = Uuid::uuid5('38c0ad1a-a33a-466c-8b33-c72325e5400f', $code)->getHex(),
+                    'id' => $tagId = (string) Uuid::uuid5('38c0ad1a-a33a-466c-8b33-c72325e5400f', $code)->getHex(),
                     'name' => $code,
                 ],
             ], $context);
@@ -315,7 +315,7 @@ class CustomerReceiver extends ReceiverContract
 
     private function getAddress(Address $address, Context $context): array
     {
-        $address->setPrimaryKey(PrimaryKeyGenerator::generatePrimaryKey($address, 'faa35e6e-27eb-4f0a-bb3d-2e6b03991f9b') ?? Uuid::uuid4()->getHex());
+        $address->setPrimaryKey(PrimaryKeyGenerator::generatePrimaryKey($address, 'faa35e6e-27eb-4f0a-bb3d-2e6b03991f9b') ?? (string) Uuid::uuid4()->getHex());
 
         $targetAddress = [
             'id' => $address->getPrimaryKey(),
