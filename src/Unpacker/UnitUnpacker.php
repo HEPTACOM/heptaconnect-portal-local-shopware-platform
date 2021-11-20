@@ -3,11 +3,10 @@ declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker;
 
+use Heptacom\HeptaConnect\Dataset\Base\Translatable\TranslatableString;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Unit;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
-use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\Translator;
 use Ramsey\Uuid\Uuid;
-use Shopware\Core\Defaults;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 
@@ -15,14 +14,14 @@ class UnitUnpacker
 {
     public const NS_UNIT = '54f3002accfa4b72a4d5102a634824ae';
 
+    private TranslatableUnpacker $translatableUnpacker;
+
     private DalAccess $dalAccess;
 
-    private Translator $translator;
-
-    public function __construct(DalAccess $dalAccess, Translator $translator)
+    public function __construct(TranslatableUnpacker $translatableUnpacker, DalAccess $dalAccess)
     {
+        $this->translatableUnpacker = $translatableUnpacker;
         $this->dalAccess = $dalAccess;
-        $this->translator = $translator;
     }
 
     public function unpack(Unit $source): array
@@ -30,26 +29,6 @@ class UnitUnpacker
         $id = $source->getPrimaryKey();
         $defaultName = $source->getName()->getFallback();
         $name = null;
-
-        $translations = [];
-
-        foreach ($source->getName()->getLocaleKeys() as $localeKey) {
-            $name = \trim($source->getName()->getTranslation($localeKey, false));
-
-            if ($name === '') {
-                continue;
-            }
-
-            $translations[$localeKey] = [
-                'name' => $name,
-                'shortCode' => !empty($source->getSymbol()) ? $source->getSymbol() : $name,
-            ];
-        }
-
-        $translations[Defaults::LANGUAGE_SYSTEM] = [
-            'name' => $defaultName ?? ('Unit '.$source->getSymbol()),
-            'shortCode' => !empty($source->getSymbol()) ? $source->getSymbol() : ($name ?? $defaultName),
-        ];
 
         if ($id === null) {
             $unitCriteria = (new Criteria())
@@ -70,8 +49,19 @@ class UnitUnpacker
 
         return [
             'id' => $source->getPrimaryKey(),
-            'shortCode' => $source->getSymbol(),
-            'translations' => $this->translator->exchangeLocaleKeysToLanguageKeys($translations),
+            'translations' => $this->unpackTranslations($source),
         ];
+    }
+
+    protected function unpackTranslations(Unit $unit): array
+    {
+        $symbol = new TranslatableString();
+        $symbol->setFallback($unit->getSymbol());
+
+        return \array_merge_recursive(
+            [],
+            $this->translatableUnpacker->unpack($unit->getName(), 'name'),
+            $this->translatableUnpacker->unpack($symbol, 'shortCode'),
+        );
     }
 }
