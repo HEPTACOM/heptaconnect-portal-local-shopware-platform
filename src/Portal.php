@@ -25,7 +25,7 @@ class Portal extends PortalContract
     {
         return parent::getConfigurationTemplate()
             ->setDefaults([
-                self::CONFIG_DAL_INDEX_MODE => self::DAL_INDEX_MODE_NONE,
+                self::CONFIG_DAL_INDEX_MODE => self::DAL_INDEX_MODE_QUEUE,
             ])
             ->setAllowedTypes(self::CONFIG_DAL_INDEX_MODE, 'string')
             ->setAllowedValues(self::CONFIG_DAL_INDEX_MODE, [

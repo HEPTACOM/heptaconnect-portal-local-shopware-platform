@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change a method call in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\PrimaryKeyGenerator::generatePrimaryKey` to use the refactored method name `\Heptacom\HeptaConnect\Storage\Base\PrimaryKeySharingMappingStruct::getEntityType`
 - Move `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\ProductReceiver` into short notation
 - Move `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\CustomerGroupReceiver` into short notation
+- Change default value for configuration for `dal_indexing_mode` from `none` to `queue`
 
 ## [0.7.0] - 2021-09-25
 
