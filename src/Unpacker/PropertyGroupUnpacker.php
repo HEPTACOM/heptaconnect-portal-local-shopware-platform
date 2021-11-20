@@ -8,16 +8,27 @@ use Shopware\Core\Framework\Uuid\Uuid;
 
 class PropertyGroupUnpacker
 {
+    private TranslatableUnpacker $translatableUnpacker;
+
+    public function __construct(TranslatableUnpacker $translatableUnpacker)
+    {
+        $this->translatableUnpacker = $translatableUnpacker;
+    }
+
     public function unpack(PropertyGroup $propertyGroup): array
     {
         // TODO improve id generation
         $id = $propertyGroup->getPrimaryKey() ?? Uuid::randomHex();
         $propertyGroup->setPrimaryKey($id);
 
-        // TODO translations
         return [
             'id' => $id,
-            'name' => $propertyGroup->getName()->getFallback(),
+            'translations' => $this->unpackTranslations($propertyGroup),
         ];
+    }
+
+    protected function unpackTranslations(PropertyGroup $propertyGroup): array
+    {
+        return $this->translatableUnpacker->unpack($propertyGroup->getName(), 'name');
     }
 }
