@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Heptacom\HeptaConnect\Dataset\Base\TypedDatasetEntityCollection;
+use Heptacom\HeptaConnect\Dataset\Ecommerce\Customer\CustomerGroup;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Category;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Manufacturer;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Unit;
@@ -26,6 +27,23 @@ FlowComponent::receiver(Category::class)->batch(function (
     foreach ($categories as $category) {
         $payload = \array_shift($payloads);
         $category->setPrimaryKey((string) $payload['id']);
+    }
+});
+
+FlowComponent::receiver(CustomerGroup::class)->batch(function (
+    DalAccess $dal,
+    TypedDatasetEntityCollection $customerGroups,
+    Unpacker\CustomerGroupUnpacker $unpacker
+): void {
+    /** @var array[] $payloads */
+    $payloads = \array_values(\iterable_to_array($customerGroups->map([$unpacker, 'unpack'])));
+
+    $dal->repository('customer_group')->upsert($payloads, $dal->getContext());
+
+    /** @var CustomerGroup $customerGroup */
+    foreach ($customerGroups as $customerGroup) {
+        $payload = \array_shift($payloads);
+        $customerGroup->setPrimaryKey((string) $payload['id']);
     }
 });
 

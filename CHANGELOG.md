@@ -17,11 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add log message code `1637342443` in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\LocaleMatcher::match` when a locale code could be matched against multiple other Shopware languages
 - Add log message code `1637344184` in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker::unpack` when a translated value is tried to be applied but the language code could not be mapped to a Shopware language
 - Add `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\CategoryUnpacker` to unpack category data into Shopware API payload
+- Add `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\CustomerGroupUnpacker` to unpack customer group data into Shopware API payload
 
 ### Changed
 
 - Change a method call in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\PrimaryKeyGenerator::generatePrimaryKey` to use the refactored method name `\Heptacom\HeptaConnect\Storage\Base\PrimaryKeySharingMappingStruct::getEntityType`
 - Move `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\ProductReceiver` into short notation
+- Move `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\CustomerGroupReceiver` into short notation
 
 ## [0.7.0] - 2021-09-25
 
