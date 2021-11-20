@@ -15,7 +15,6 @@ use Heptacom\HeptaConnect\Dataset\Ecommerce\Tax\TaxGroupRule;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\ExistingIdentifierCache;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\PrimaryKeyGenerator;
-use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\TranslationLocaleCache;
 use Shopware\Core\Content\Product\Aggregate\ProductVisibility\ProductVisibilityDefinition;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -40,7 +39,7 @@ class ProductUnpacker
 
     private ProductPriceUnpacker $productPriceUnpacker;
 
-    private TranslationLocaleCache $translationLocaleCache;
+    private TranslatableUnpacker $translatableUnpacker;
 
     private ?SalesChannelCollection $salesChannels = null;
 
@@ -51,7 +50,7 @@ class ProductUnpacker
         ManufacturerUnpacker $manufacturerUnpacker,
         UnitUnpacker $unitUnpacker,
         ProductPriceUnpacker $productPriceUnpacker,
-        TranslationLocaleCache $translationLocaleCache
+        TranslatableUnpacker $translatableUnpacker
     ) {
         $this->dalAccess = $dalAccess;
         $this->existingIdentifierCache = $existingIdentifierCache;
@@ -59,7 +58,7 @@ class ProductUnpacker
         $this->manufacturerUnpacker = $manufacturerUnpacker;
         $this->unitUnpacker = $unitUnpacker;
         $this->productPriceUnpacker = $productPriceUnpacker;
-        $this->translationLocaleCache = $translationLocaleCache;
+        $this->translatableUnpacker = $translatableUnpacker;
     }
 
     public function unpack(Product $source): array
@@ -277,21 +276,10 @@ class ProductUnpacker
 
     protected function unpackTranslations(Product $source): array
     {
-        $result = [];
-
-        foreach ($this->translationLocaleCache->getLocales() as $localeCode) {
-            $result[$localeCode]['name'] = $source->getName()->getTranslation($localeCode, true);
-            $result[$localeCode]['description'] = $source->getDescription()->getTranslation($localeCode, true);
-        }
-
-        foreach ($source->getName()->getLocaleKeys() as $localeCode) {
-            $result[$localeCode]['name'] ??= $source->getName()->getTranslation($localeCode);
-        }
-
-        foreach ($source->getDescription()->getLocaleKeys() as $localeCode) {
-            $result[$localeCode]['description'] ??= $source->getDescription()->getTranslation($localeCode);
-        }
-
-        return $result;
+        return \array_merge_recursive(
+            [],
+            $this->translatableUnpacker->unpack($source->getName(), 'name'),
+            $this->translatableUnpacker->unpack($source->getDescription(), 'description'),
+        );
     }
 }
