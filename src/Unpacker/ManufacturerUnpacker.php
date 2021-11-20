@@ -6,21 +6,20 @@ namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\Media;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\MediaCollection;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Manufacturer;
-use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\ExistingIdentifierCache;
 use Shopware\Core\Framework\Uuid\Uuid;
 
 class ManufacturerUnpacker
 {
-    private ExistingIdentifierCache $existingIdentifierCache;
-
     private MediaUnpacker $mediaUnpacker;
 
+    private TranslatableUnpacker $translatableUnpacker;
+
     public function __construct(
-        ExistingIdentifierCache $existingIdentifierCache,
-        MediaUnpacker $mediaUnpacker
+        MediaUnpacker $mediaUnpacker,
+        TranslatableUnpacker $translatableUnpacker
     ) {
-        $this->existingIdentifierCache = $existingIdentifierCache;
         $this->mediaUnpacker = $mediaUnpacker;
+        $this->translatableUnpacker = $translatableUnpacker;
     }
 
     public function unpack(Manufacturer $source): array
@@ -31,12 +30,16 @@ class ManufacturerUnpacker
 
         $media = $this->getManufacturerImage($source);
 
-        // TODO translations
         return [
             'id' => $targetManufacturerId,
-            'name' => $source->getName()->getFallback(),
             ($media === null ? 'mediaId' : 'media') => $media,
+            'translations' => $this->unpackTranslations($source),
         ];
+    }
+
+    protected function unpackTranslations(Manufacturer $manufacturer): array
+    {
+        return $this->translatableUnpacker->unpack($manufacturer->getName(), 'name');
     }
 
     protected function getManufacturerImage(Manufacturer $manufacturer): ?array
