@@ -36,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use fallback translations values for default language for the keys name and description in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\ProductUnpacker::unpackTranslations`
 
+### Removed
+
+- Remove `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\Translator` in favour of `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker` and `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\TranslationLocaleCache`
+
 ## [0.7.0] - 2021-09-25
 
 ### Added
