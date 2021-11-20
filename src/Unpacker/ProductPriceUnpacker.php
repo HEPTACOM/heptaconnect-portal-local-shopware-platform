@@ -74,7 +74,7 @@ class ProductPriceUnpacker
         $price->setPrimaryKey($priceId);
         $price->setPrimaryKey($price->getPrimaryKey() ?? (string) Uuid::uuid5(
                 $ruleId,
-                $productNumber.'__'.$price->getQuantityStart()
+                $productNumber . '__' . $price->getQuantityStart()
             )->getHex());
 
         if ($price->getCurrency() instanceof Currency) {

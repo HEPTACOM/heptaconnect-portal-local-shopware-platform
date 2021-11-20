@@ -133,7 +133,7 @@ final class DalSyncer
         $key ??= Uuid::randomHex();
         $payload = \array_values($payload);
 
-        if (\defined(PlatformRequest::class.'::API_VERSION')) {
+        if (\defined(PlatformRequest::class . '::API_VERSION')) {
             return new SyncOperation($key, $entity, $action, $payload, PlatformRequest::API_VERSION);
         }
 

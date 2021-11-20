@@ -277,7 +277,7 @@ class OrderEmitter extends EmitterContract
                     $group = \trim($optionAssignment['group'] ?? '');
                     $option = \trim($optionAssignment['option'] ?? '');
 
-                    return $group === '' || $option === '' ? null : $group.': '.$option;
+                    return $group === '' || $option === '' ? null : $group . ': ' . $option;
                 }, $sourceLineItem->getPayload()['options'] ?? []));
 
                 $targetLineItem = new LineItemProduct();

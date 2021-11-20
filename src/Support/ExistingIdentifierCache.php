@@ -99,7 +99,7 @@ class ExistingIdentifierCache
                 $this->dalAccess->repository('tax')->create([[
                     'id' => $taxId,
                     'taxRate' => $taxRate,
-                    'name' => $taxRateKey.'%',
+                    'name' => $taxRateKey . '%',
                 ]], $this->dalAccess->getContext());
             }
 
@@ -109,7 +109,7 @@ class ExistingIdentifierCache
                 ->firstId();
 
             if (!\is_string($this->cache['tax'][$taxRateKey])) {
-                throw new \RuntimeException('Could not create new tax entity for '.$taxRateKey.' %.');
+                throw new \RuntimeException('Could not create new tax entity for ' . $taxRateKey . ' %.');
             }
         }
 
@@ -147,7 +147,7 @@ class ExistingIdentifierCache
                 ->firstId();
 
             if (!\is_string($this->cache['currency'][$isoCode])) {
-                throw new \RuntimeException('Could not create new curency entity for '.$isoCode.'.');
+                throw new \RuntimeException('Could not create new curency entity for ' . $isoCode . '.');
             }
         }
 

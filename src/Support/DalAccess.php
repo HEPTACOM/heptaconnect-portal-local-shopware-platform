@@ -41,7 +41,7 @@ class DalAccess implements LoggerAwareInterface
     public function repository(string $name): EntityRepositoryInterface
     {
         /** @var EntityRepositoryInterface $result */
-        $result = $this->container->get($name.'.repository');
+        $result = $this->container->get($name . '.repository');
 
         return $result;
     }
