@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\LocaleMatcher` to centralize translation handling of incoming locale matching
+- Add `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker` to centralize translations payload generation of any `\Heptacom\HeptaConnect\Dataset\Base\Translatable\Contract\TranslatableInterface`
+- Add log message code `1637342440` in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\LocaleMatcher::match` when a locale code is tested against a Shopware language
+- Add log message code `1637342441` in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\LocaleMatcher::match` when a locale code could not be matched
+- Add log message code `1637342442` in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\LocaleMatcher::match` when a locale code could be matched to a unique Shopware language
+- Add log message code `1637342443` in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\LocaleMatcher::match` when a locale code could be matched against multiple other Shopware languages
+- Add log message code `1637344184` in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker::unpack` when a translated value is tried to be applied but the language code could not be mapped to a Shopware language
+
+### Changed
+
 - Change a method call in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\PrimaryKeyGenerator::generatePrimaryKey` to use the refactored method name `\Heptacom\HeptaConnect\Storage\Base\PrimaryKeySharingMappingStruct::getEntityType`
 
 ## [0.7.0] - 2021-09-25
