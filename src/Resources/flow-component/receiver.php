@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Heptacom\HeptaConnect\Dataset\Base\TypedDatasetEntityCollection;
+use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Category;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Manufacturer;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Unit;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Property\PropertyGroup;
@@ -10,6 +11,23 @@ use Heptacom\HeptaConnect\Dataset\Ecommerce\Property\PropertyValue;
 use Heptacom\HeptaConnect\Portal\Base\Builder\FlowComponent;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker;
+
+FlowComponent::receiver(Category::class)->batch(function (
+    DalAccess $dal,
+    TypedDatasetEntityCollection $categories,
+    Unpacker\CategoryUnpacker $unpacker
+): void {
+    /** @var array[] $payloads */
+    $payloads = \array_values(\iterable_to_array($categories->map([$unpacker, 'unpack'])));
+
+    $dal->repository('category')->upsert($payloads, $dal->getContext());
+
+    /** @var Category $category */
+    foreach ($categories as $category) {
+        $payload = \array_shift($payloads);
+        $category->setPrimaryKey((string) $payload['id']);
+    }
+});
 
 FlowComponent::receiver(Manufacturer::class)->batch(function (
     DalAccess $dal,
