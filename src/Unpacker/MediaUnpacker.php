@@ -19,14 +19,18 @@ class MediaUnpacker
 
     private DalAccess $dalAccess;
 
+    private TranslatableUnpacker $translatableUnpacker;
+
     public function __construct(
         MediaService $mediaService,
         NormalizationRegistryContract $normalizationRegistry,
-        DalAccess $dalAccess
+        DalAccess $dalAccess,
+        TranslatableUnpacker $translatableUnpacker
     ) {
         $this->mediaService = $mediaService;
         $this->normalizationRegistry = $normalizationRegistry;
         $this->dalAccess = $dalAccess;
+        $this->translatableUnpacker = $translatableUnpacker;
     }
 
     public function unpack(Media $source): array
@@ -62,9 +66,16 @@ class MediaUnpacker
 
         return [
             'id' => $source->getPrimaryKey(),
-            // TODO support better translation
-            'alt' => $source->getTitle()->getFallback(),
-            'title' => $source->getTitle()->getFallback(),
+            'translations' => $this->unpackTranslations($source),
         ];
+    }
+
+    private function unpackTranslations(Media $media): array
+    {
+        return \array_merge_recursive(
+            [],
+            $this->translatableUnpacker->unpack($media->getTitle(), 'alt'),
+            $this->translatableUnpacker->unpack($media->getTitle(), 'title'),
+        );
     }
 }
