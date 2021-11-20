@@ -122,7 +122,7 @@ class OrderReceiver extends ReceiverContract
 
     private function getOrderHashKey(Order $order): string
     {
-        $order->setPrimaryKey($order->getPrimaryKey() ?? RamseyUuid::uuid5('3c8352ab-0fb8-4006-bff6-f8133676644e', $order->getNumber())->getHex());
+        $order->setPrimaryKey($order->getPrimaryKey() ?? (string) RamseyUuid::uuid5('3c8352ab-0fb8-4006-bff6-f8133676644e', $order->getNumber())->getHex());
 
         return 'OrderHashKey:'.$order->getPrimaryKey();
     }

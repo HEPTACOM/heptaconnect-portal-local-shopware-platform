@@ -69,10 +69,10 @@ class ProductPriceUnpacker
         $priceId = PrimaryKeyGenerator::generatePrimaryKey(
                 $price,
                 'da210b7c-fd7c-4aa6-a0ee-846a508482db'
-            ) ?? Uuid::uuid4()->getHex();
+            ) ?? (string) Uuid::uuid4()->getHex();
 
         $price->setPrimaryKey($priceId);
-        $price->setPrimaryKey($price->getPrimaryKey() ?? Uuid::uuid5(
+        $price->setPrimaryKey($price->getPrimaryKey() ?? (string) Uuid::uuid5(
                 $ruleId,
                 $productNumber.'__'.$price->getQuantityStart()
             )->getHex());
@@ -127,14 +127,14 @@ class ProductPriceUnpacker
         $nameParts = [];
 
         $targetConditions[] = $orMergeCondition = [
-            'id' => static fn(string $ruleId): string => (string) Uuid::uuid5(self::NS_CONDITION_CONTAINER_OR, $ruleId)->getHex(),
+            'id' => static fn (string $ruleId): string => (string) Uuid::uuid5(self::NS_CONDITION_CONTAINER_OR, $ruleId)->getHex(),
             'type' => 'orContainer',
             'position' => 0,
             'value' => [],
         ];
 
         $targetConditions[] = $andMergeCondition = [
-            'id' => static fn(string $ruleId): string => (string) Uuid::uuid5(self::NS_CONDITION_CONTAINER_AND, $ruleId)->getHex(),
+            'id' => static fn (string $ruleId): string => (string) Uuid::uuid5(self::NS_CONDITION_CONTAINER_AND, $ruleId)->getHex(),
             'parentId' => $orMergeCondition['id'],
             'type' => 'andContainer',
             'position' => 0,
@@ -155,7 +155,7 @@ class ProductPriceUnpacker
                 $conditionResult,
                 [
                     'id' => static function (string $ruleId) use ($conditionEssence, $sourceCondition): string {
-                        $sourceCondition->setPrimaryKey($sourceCondition->getPrimaryKey() ?? Uuid::uuid5('f59587c4-35e4-4474-a95b-e04babe60241', \json_encode([
+                        $sourceCondition->setPrimaryKey($sourceCondition->getPrimaryKey() ?? (string) Uuid::uuid5('f59587c4-35e4-4474-a95b-e04babe60241', \json_encode([
                                 'essence' => $conditionEssence,
                                 'ruleId' => $ruleId,
                             ]))->getHex());

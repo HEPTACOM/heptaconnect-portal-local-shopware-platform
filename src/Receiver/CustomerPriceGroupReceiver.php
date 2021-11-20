@@ -33,7 +33,7 @@ class CustomerPriceGroupReceiver extends ReceiverContract
         DatasetEntityContract $entity,
         ReceiveContextInterface $context
     ): void {
-        $primaryKey = PrimaryKeyGenerator::generatePrimaryKey($entity, '56636118-4306-44fe-9ebc-4584e9c706af') ?? Uuid::uuid5('7bde4c47-bc51-45db-a1b7-093c60170a79', $entity->getCode())->getHex();
+        $primaryKey = PrimaryKeyGenerator::generatePrimaryKey($entity, '56636118-4306-44fe-9ebc-4584e9c706af') ?? (string) Uuid::uuid5('7bde4c47-bc51-45db-a1b7-093c60170a79', $entity->getCode())->getHex();
         $entity->setPrimaryKey($primaryKey);
 
         $this->dal->repository('tag')->upsert([[

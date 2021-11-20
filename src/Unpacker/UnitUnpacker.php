@@ -63,7 +63,7 @@ class UnitUnpacker
         }
 
         if ($id === null) {
-            $id = Uuid::uuid5(self::NS_UNIT, $source->getSymbol())->getHex();
+            $id = (string) Uuid::uuid5(self::NS_UNIT, $source->getSymbol())->getHex();
         }
 
         $source->setPrimaryKey($id);
