@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker` in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\ManufacturerUnpacker` to support translations
 - Use `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker` in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\PropertyValueUnpacker` to support translations
 - Use `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker` in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\PropertyGroupUnpacker` to support translations
+- Add `\Shopware\Core\System\Language\LanguageLoaderInterface` to portal node container
 - Add compatibility in code for `ramsey/uuid: ^4` and therefore changed composer requirement to `ramsey/uuid: ^3.5 || ^4`
 
 ### Changed
@@ -31,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change default value for configuration for `dal_indexing_mode` from `none` to `queue`
 - Use `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker` in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\UnitUnpacker` instead of `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\Translator`
 - Use `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker` in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\ProductUnpacker` instead of `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\TranslationLocaleCache` directly
+- Use `\Shopware\Core\System\Language\LanguageLoaderInterface` in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\TranslationLocaleCache` instead of `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess`
+- Remove `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\ExistingIdentifierCache` dependency from `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\ManufacturerUnpacker`
 
 ### Fixed
 
