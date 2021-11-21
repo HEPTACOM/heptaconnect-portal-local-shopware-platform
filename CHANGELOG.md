@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2021-11-22
+
 ### Added
 
 - Add `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\LocaleMatcher` to centralize translation handling of incoming locale matching
