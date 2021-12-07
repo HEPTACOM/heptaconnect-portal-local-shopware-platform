@@ -107,8 +107,11 @@ class CustomerPacker
         }
 
         if ($sourceCustomer->getDefaultBillingAddress()) {
+            $vatIds = $sourceCustomer->getVatIds() ?? [];
+            $vatId = (string) (\array_shift($vatIds) ?? '');
+
             $defaultBillingAddress = $this->getAddress($sourceCustomer->getDefaultBillingAddress());
-            $defaultBillingAddress->setVatId($sourceCustomer->getVatIds() ? $sourceCustomer->getVatIds()->first() : '');
+            $defaultBillingAddress->setVatId($vatId);
             $targetCustomer->setDefaultBillingAddress($defaultBillingAddress);
         }
 
