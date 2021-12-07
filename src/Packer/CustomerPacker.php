@@ -107,7 +107,9 @@ class CustomerPacker
         }
 
         if ($sourceCustomer->getDefaultBillingAddress()) {
-            $targetCustomer->setDefaultBillingAddress($this->getAddress($sourceCustomer->getDefaultBillingAddress()));
+            $defaultBillingAddress = $this->getAddress($sourceCustomer->getDefaultBillingAddress());
+            $defaultBillingAddress->setVatId($sourceCustomer->getVatIds() ? $sourceCustomer->getVatIds()->first() : '');
+            $targetCustomer->setDefaultBillingAddress($defaultBillingAddress);
         }
 
         if ($sourceCustomer->getDefaultShippingAddress()) {
@@ -163,7 +165,6 @@ class CustomerPacker
         $targetAddress->setStreet($sourceCustomerAddress->getStreet());
         $targetAddress->setZipcode($sourceCustomerAddress->getZipcode());
         $targetAddress->setCity($sourceCustomerAddress->getCity());
-        $targetAddress->setVatId($sourceCustomerAddress->getVatId() ?? '');
         $targetAddress->setPhoneNumber($sourceCustomerAddress->getPhoneNumber() ?? '');
         $targetAddress->setAdditionalLines(new StringCollection(\array_filter([
             $sourceCustomerAddress->getAdditionalAddressLine1(),
