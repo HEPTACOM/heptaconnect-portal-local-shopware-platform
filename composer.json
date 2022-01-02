@@ -72,5 +72,10 @@
             "heptacom/heptaconnect-bridge-shopware-platform"
         ]
     },
+    "config": {
+        "allow-plugins": {
+            "infection/extension-installer": true
+        }
+    },
     "website": "https://heptaconnect.io"
 }
