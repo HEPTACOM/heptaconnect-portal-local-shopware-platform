@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Test\Unit\Unpacker;
@@ -38,7 +39,7 @@ class CustomerGroupUnpackerTest extends TestCase
                         $id => true,
                     ],
                 ][$r][$pk ?? ''] ?? false
-        );
+            );
 
         $unpacker = new CustomerGroupUnpacker(new TranslatableUnpacker($cache, new LocaleMatcher(new NullLogger()), new NullLogger()), $dal);
 
@@ -46,16 +47,16 @@ class CustomerGroupUnpackerTest extends TestCase
         $customerGroup->setPrimaryKey($id);
         $customerGroup->setName('foobar');
 
-        self::assertEquals([
+        static::assertEquals([
             'id' => $id,
             'translations' => [
-                'de-DE' =>  [
+                'de-DE' => [
                     'name' => 'foobar',
                 ],
-                'nl-NL' =>  [
+                'nl-NL' => [
                     'name' => 'foobar',
                 ],
-                'en-GB' =>  [
+                'en-GB' => [
                     'name' => 'foobar',
                 ],
             ],
@@ -81,17 +82,17 @@ class CustomerGroupUnpackerTest extends TestCase
         $customerGroup->setPrimaryKey($id);
         $customerGroup->setName('foobar');
 
-        self::assertEquals([
+        static::assertEquals([
             'id' => $id,
             'displayGross' => true,
             'translations' => [
-                'de-DE' =>  [
+                'de-DE' => [
                     'name' => 'foobar',
                 ],
-                'nl-NL' =>  [
+                'nl-NL' => [
                     'name' => 'foobar',
                 ],
-                'en-GB' =>  [
+                'en-GB' => [
                     'name' => 'foobar',
                 ],
             ],

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Core\Portal;
@@ -81,7 +82,7 @@ class ShopwarePortalStackServiceContainerBuilder implements PortalStackServiceCo
         return $result;
     }
 
-    private function prepareContainer(ContainerBuilder $containerBuilder)
+    private function prepareContainer(ContainerBuilder $containerBuilder): void
     {
         $this->setSyntheticServices($containerBuilder, [
             StateMachineRegistry::class => $this->stateMachineRegistry,

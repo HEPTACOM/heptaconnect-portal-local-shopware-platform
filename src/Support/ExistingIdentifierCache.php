@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support;
@@ -55,7 +56,7 @@ class ExistingIdentifierCache
                     ->searchIds($idCriteria, $this->dalAccess->getContext())
                     ->firstId() ?? (string) Uuid::uuid5(
                         self::NS_PRODUCT_VISIBILITY,
-                        \join(';', [$salesChannelId, $productId])
+                        \implode(';', [$salesChannelId, $productId])
                     )->getHex();
         }
 
@@ -76,7 +77,7 @@ class ExistingIdentifierCache
 
         return $this->cache['productMedia'][$mediaId][$productId] ??= (string) Uuid::uuid5(
             self::NS_PRODUCT_MEDIA,
-            \join(';', [$mediaId, $productId])
+            \implode(';', [$mediaId, $productId])
         )->getHex();
     }
 

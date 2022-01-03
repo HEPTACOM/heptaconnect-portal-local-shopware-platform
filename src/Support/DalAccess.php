@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support;
@@ -115,9 +116,11 @@ class DalAccess implements LoggerAwareInterface
         switch ($this->configDalIndexingMode) {
             case Portal::DAL_INDEX_MODE_NONE:
                 $result->addExtension(EntityIndexerRegistry::DISABLE_INDEXING, new ArrayStruct());
+
                 break;
             case Portal::DAL_INDEX_MODE_QUEUE:
                 $result->addExtension(EntityIndexerRegistry::USE_INDEXING_QUEUE, new ArrayStruct());
+
                 break;
         }
 

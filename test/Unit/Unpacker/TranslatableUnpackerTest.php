@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Test\Unit\Unpacker;
@@ -29,14 +30,14 @@ class TranslatableUnpackerTest extends TestCase
 
         $translatable = new TranslatableString();
         $translatable->setFallback('foobar');
-        self::assertEquals([
-            'de-DE' =>  [
+        static::assertEquals([
+            'de-DE' => [
                 'name' => 'foobar',
             ],
-            'nl-NL' =>  [
+            'nl-NL' => [
                 'name' => 'foobar',
             ],
-            'en-GB' =>  [
+            'en-GB' => [
                 'name' => 'foobar',
             ],
         ], $unpacker->unpack($translatable, 'name'));
@@ -56,14 +57,14 @@ class TranslatableUnpackerTest extends TestCase
         $translatable->setFallback('foobar');
         $translatable->setTranslation('de-DE', 'fööbär');
 
-        self::assertEquals([
-            'de-DE' =>  [
+        static::assertEquals([
+            'de-DE' => [
                 'name' => 'fööbär',
             ],
-            'nl-NL' =>  [
+            'nl-NL' => [
                 'name' => 'foobar',
             ],
-            'en-GB' =>  [
+            'en-GB' => [
                 'name' => 'foobar',
             ],
         ], $unpacker->unpack($translatable, 'name'));
@@ -83,14 +84,14 @@ class TranslatableUnpackerTest extends TestCase
         $translatable->setFallback('foobar');
         $translatable->setTranslation('de', 'fööbär');
 
-        self::assertEquals([
-            'de-DE' =>  [
+        static::assertEquals([
+            'de-DE' => [
                 'name' => 'fööbär',
             ],
-            'nl-NL' =>  [
+            'nl-NL' => [
                 'name' => 'foobar',
             ],
-            'en-GB' =>  [
+            'en-GB' => [
                 'name' => 'foobar',
             ],
         ], $unpacker->unpack($translatable, 'name'));
@@ -99,10 +100,10 @@ class TranslatableUnpackerTest extends TestCase
     public function testStringUnknownLocaleCodes(): void
     {
         $messages = [];
-        $log = static function (string $l, string $m) use (&$messages) {
+        $log = static function (string $l, string $m) use (&$messages): void {
             $messages[$l][] = $m;
         };
-        $logger = new class ($log) extends AbstractLogger {
+        $logger = new class($log) extends AbstractLogger {
             private \Closure $onLog;
 
             public function __construct(\Closure $onLog)
@@ -110,7 +111,7 @@ class TranslatableUnpackerTest extends TestCase
                 $this->onLog = $onLog;
             }
 
-            public function log($level, $message, array $context = array())
+            public function log($level, $message, array $context = []): void
             {
                 $onLog = $this->onLog;
                 $onLog($level, $message);
@@ -128,17 +129,17 @@ class TranslatableUnpackerTest extends TestCase
         $translatable->setFallback('foobar');
         $translatable->setTranslation('fr', 'fôbà');
 
-        self::assertEquals([
-            'de-DE' =>  [
+        static::assertEquals([
+            'de-DE' => [
                 'name' => 'foobar',
             ],
-            'nl-NL' =>  [
+            'nl-NL' => [
                 'name' => 'foobar',
             ],
-            'en-GB' =>  [
+            'en-GB' => [
                 'name' => 'foobar',
             ],
         ], $unpacker->unpack($translatable, 'name'));
-        self::assertNotEmpty($messages['error'] ?? []);
+        static::assertNotEmpty($messages['error'] ?? []);
     }
 }

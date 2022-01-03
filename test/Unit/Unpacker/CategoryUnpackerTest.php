@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Test\Unit\Unpacker;
@@ -41,7 +42,7 @@ class CategoryUnpackerTest extends TestCase
                         $parentId => true,
                     ],
                 ][$r][$pk ?? ''] ?? false
-        );
+            );
 
         $unpacker = new CategoryUnpacker(new TranslatableUnpacker($cache, new LocaleMatcher(new NullLogger()), new NullLogger()), $dal);
 
@@ -53,17 +54,17 @@ class CategoryUnpackerTest extends TestCase
         $category->setParent($parent);
         $category->getName()->setFallback('foobar');
 
-        self::assertEquals([
+        static::assertEquals([
             'id' => $id,
             'parentId' => $parentId,
             'translations' => [
-                'de-DE' =>  [
+                'de-DE' => [
                     'name' => 'foobar',
                 ],
-                'nl-NL' =>  [
+                'nl-NL' => [
                     'name' => 'foobar',
                 ],
-                'en-GB' =>  [
+                'en-GB' => [
                     'name' => 'foobar',
                 ],
             ],
@@ -96,17 +97,17 @@ class CategoryUnpackerTest extends TestCase
         $category->setPrimaryKey($id);
         $category->getName()->setFallback('foobar');
 
-        self::assertEquals([
+        static::assertEquals([
             'id' => $id,
             'parentId' => null,
             'translations' => [
-                'de-DE' =>  [
+                'de-DE' => [
                     'name' => 'foobar',
                 ],
-                'nl-NL' =>  [
+                'nl-NL' => [
                     'name' => 'foobar',
                 ],
-                'en-GB' =>  [
+                'en-GB' => [
                     'name' => 'foobar',
                 ],
             ],
@@ -137,18 +138,18 @@ class CategoryUnpackerTest extends TestCase
         $category->setParent($parent);
         $category->getName()->setFallback('foobar');
 
-        self::assertEquals([
+        static::assertEquals([
             'id' => $id,
             'parentId' => null,
             'type' => CategoryDefinition::TYPE_FOLDER,
             'translations' => [
-                'de-DE' =>  [
+                'de-DE' => [
                     'name' => 'foobar',
                 ],
-                'nl-NL' =>  [
+                'nl-NL' => [
                     'name' => 'foobar',
                 ],
-                'en-GB' =>  [
+                'en-GB' => [
                     'name' => 'foobar',
                 ],
             ],

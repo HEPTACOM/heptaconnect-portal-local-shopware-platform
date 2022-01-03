@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver;
@@ -62,8 +63,8 @@ class CustomerReceiver extends ReceiverContract
     ): void {
         $dalContext = $this->dal->getContext();
         $entity->setPrimaryKey(
-            PrimaryKeyGenerator::generatePrimaryKey($entity, '57854452-bbf4-4ba4-ab27-a52723c2f634') ??
-            (string) Uuid::uuid5('36e684e2-e182-4d60-a180-9b61a4cce982', $entity->getNumber())->getHex()
+            PrimaryKeyGenerator::generatePrimaryKey($entity, '57854452-bbf4-4ba4-ab27-a52723c2f634')
+            ?? (string) Uuid::uuid5('36e684e2-e182-4d60-a180-9b61a4cce982', $entity->getNumber())->getHex()
         );
 
         if (!$this->dal->idExists('customer', $entity->getPrimaryKey())) {

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Test\Unit\Unpacker;
@@ -40,7 +41,7 @@ class UnitUnpackerTest extends TestCase
                         $parentId => true,
                     ],
                 ][$r][$pk ?? ''] ?? false
-        );
+            );
 
         $unpacker = new UnitUnpacker(new TranslatableUnpacker($cache, new LocaleMatcher(new NullLogger()), new NullLogger()), $dal);
 
@@ -50,18 +51,18 @@ class UnitUnpackerTest extends TestCase
         $unit->getName()->setTranslation('de-DE', 'fööbär');
         $unit->setSymbol('ƒb');
 
-        self::assertEquals([
+        static::assertEquals([
             'id' => $id,
             'translations' => [
-                'de-DE' =>  [
+                'de-DE' => [
                     'name' => 'fööbär',
                     'shortCode' => 'ƒb',
                 ],
-                'nl-NL' =>  [
+                'nl-NL' => [
                     'name' => 'foobar',
                     'shortCode' => 'ƒb',
                 ],
-                'en-GB' =>  [
+                'en-GB' => [
                     'name' => 'foobar',
                     'shortCode' => 'ƒb',
                 ],

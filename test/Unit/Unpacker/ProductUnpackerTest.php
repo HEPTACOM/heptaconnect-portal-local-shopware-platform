@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Test\Unit\Unpacker;
@@ -62,20 +63,20 @@ class ProductUnpackerTest extends TestCase
         $product->getTaxGroup()->getRules()->push([$taxGroupRule]);
         $product->setNumber('cb50a1ef02f84b9eaa63b13d3f9df2bb');
 
-        self::assertEquals([
+        static::assertEquals([
             'id' => $id,
             'productNumber' => 'cb50a1ef02f84b9eaa63b13d3f9df2bb',
             'taxId' => '30a13541e68a44a0977bfe2a55eebb74',
             'translations' => [
-                'de-DE' =>  [
+                'de-DE' => [
                     'name' => 'fööbär',
                     'description' => 'fööbär ist ein gutes Produkt',
                 ],
-                'nl-NL' =>  [
+                'nl-NL' => [
                     'name' => 'foobar',
                     'description' => 'foobar is a good product',
                 ],
-                'en-GB' =>  [
+                'en-GB' => [
                     'name' => 'foobar',
                     'description' => 'foobar is a good product',
                 ],

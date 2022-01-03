@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Emitter;
@@ -53,9 +54,9 @@ class ProductEmitter extends EmitterContract
             }
 
             $source = $this->dal->read('product', [$externalId], [
-                    'translations.language.locale',
-                    'cover',
-                ])->first();
+                'translations.language.locale',
+                'cover',
+            ])->first();
         } finally {
             if ($request instanceof Request) {
                 $this->requestStack->pop();
@@ -90,7 +91,7 @@ class ProductEmitter extends EmitterContract
 
                 $name = $translation->getName();
 
-                if (\is_null($name) || $name === '') {
+                if ($name === null || $name === '') {
                     continue;
                 }
 

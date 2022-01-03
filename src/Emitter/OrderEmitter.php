@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Emitter;
@@ -68,15 +69,15 @@ class OrderEmitter extends EmitterContract
     protected function run(string $externalId, EmitContextInterface $context): ?DatasetEntityContract
     {
         $source = $this->dal->read('order', [$externalId], [
-                'orderCustomer',
-                'currency',
-                'addresses.salutation',
-                'addresses.country',
-                'addresses.countryState',
-                'deliveries.shippingMethod',
-                'transactions.paymentMethod',
-                'lineItems.product',
-            ])->first();
+            'orderCustomer',
+            'currency',
+            'addresses.salutation',
+            'addresses.country',
+            'addresses.countryState',
+            'deliveries.shippingMethod',
+            'transactions.paymentMethod',
+            'lineItems.product',
+        ])->first();
 
         if (!$source instanceof OrderEntity) {
             throw new \Exception('Order was not found');
@@ -114,18 +115,23 @@ class OrderEmitter extends EmitterContract
         switch ($sourceTransaction->getStateMachineState()->getTechnicalName()) {
             case OrderTransactionStates::STATE_OPEN:
                 $target->getPaymentState()->setState(PaymentState::STATE_OPEN);
+
                 break;
             case OrderTransactionStates::STATE_PAID:
                 $target->getPaymentState()->setState(PaymentState::STATE_PAID);
+
                 break;
             case OrderTransactionStates::STATE_REFUNDED:
                 $target->getPaymentState()->setState(PaymentState::STATE_REFUNDED);
+
                 break;
             case OrderTransactionStates::STATE_CANCELLED:
                 $target->getPaymentState()->setState(PaymentState::STATE_CANCELLED);
+
                 break;
             default:
                 $target->getPaymentState()->setState(PaymentState::STATE_UNKNOWN);
+
                 break;
         }
 
@@ -146,9 +152,10 @@ class OrderEmitter extends EmitterContract
         $paymentMethod->setPrimaryKey($sourceTransaction->getPaymentMethodId());
 
         if ($sourceTransaction->getPaymentMethod() instanceof PaymentMethodEntity) {
-            $paymentMethod->getName()->setFallback($sourceTransaction->getPaymentMethod()->getShortName() ??
-                $sourceTransaction->getPaymentMethod()->getName() ??
-                $sourceTransaction->getPaymentMethod()->getDescription()
+            $paymentMethod->getName()->setFallback(
+                $sourceTransaction->getPaymentMethod()->getShortName()
+                ?? $sourceTransaction->getPaymentMethod()->getName()
+                ?? $sourceTransaction->getPaymentMethod()->getDescription()
             );
         }
 

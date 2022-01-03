@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker;
@@ -67,15 +68,15 @@ class ProductPriceUnpacker
     protected function unpackProductPrice(Price $price, string $productNumber, string $ruleId): array
     {
         $priceId = PrimaryKeyGenerator::generatePrimaryKey(
-                $price,
-                'da210b7c-fd7c-4aa6-a0ee-846a508482db'
-            ) ?? (string) Uuid::uuid4()->getHex();
+            $price,
+            'da210b7c-fd7c-4aa6-a0ee-846a508482db'
+        ) ?? (string) Uuid::uuid4()->getHex();
 
         $price->setPrimaryKey($priceId);
         $price->setPrimaryKey($price->getPrimaryKey() ?? (string) Uuid::uuid5(
-                $ruleId,
-                $productNumber . '__' . $price->getQuantityStart()
-            )->getHex());
+            $ruleId,
+            $productNumber . '__' . $price->getQuantityStart()
+        )->getHex());
 
         if ($price->getCurrency() instanceof Currency) {
             // TODO: Use mapping
@@ -156,9 +157,9 @@ class ProductPriceUnpacker
                 [
                     'id' => static function (string $ruleId) use ($conditionEssence, $sourceCondition): string {
                         $sourceCondition->setPrimaryKey($sourceCondition->getPrimaryKey() ?? (string) Uuid::uuid5('f59587c4-35e4-4474-a95b-e04babe60241', \json_encode([
-                                'essence' => $conditionEssence,
-                                'ruleId' => $ruleId,
-                            ]))->getHex());
+                            'essence' => $conditionEssence,
+                            'ruleId' => $ruleId,
+                        ]))->getHex());
 
                         return $sourceCondition->getPrimaryKey();
                     },

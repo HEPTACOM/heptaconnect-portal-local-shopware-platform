@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Test\Unit\Unpacker;
@@ -36,16 +37,16 @@ class PropertyGroupUnpackerTest extends TestCase
         $propertyGroup->getName()->setFallback('foobar');
         $propertyGroup->getName()->setTranslation('de-DE', 'fööbär');
 
-        self::assertEquals([
+        static::assertEquals([
             'id' => $id,
             'translations' => [
-                'de-DE' =>  [
+                'de-DE' => [
                     'name' => 'fööbär',
                 ],
-                'nl-NL' =>  [
+                'nl-NL' => [
                     'name' => 'foobar',
                 ],
-                'en-GB' =>  [
+                'en-GB' => [
                     'name' => 'foobar',
                 ],
             ],

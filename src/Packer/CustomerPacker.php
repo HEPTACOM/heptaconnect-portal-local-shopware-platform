@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Packer;
@@ -39,19 +40,19 @@ class CustomerPacker
     public function pack(string $customerId): Customer
     {
         $sourceCustomer = $this->dalAccess->read('customer', [$customerId], [
-                'language.locale',
-                'tags',
-                'salutation',
-                'addresses.salutation',
-                'addresses.country',
-                'addresses.countryState',
-                'defaultBillingAddress.country',
-                'defaultBillingAddress.countryState',
-                'defaultBillingAddress.salutation',
-                'defaultShippingAddress.country',
-                'defaultShippingAddress.countryState',
-                'defaultShippingAddress.salutation',
-            ])->first();
+            'language.locale',
+            'tags',
+            'salutation',
+            'addresses.salutation',
+            'addresses.country',
+            'addresses.countryState',
+            'defaultBillingAddress.country',
+            'defaultBillingAddress.countryState',
+            'defaultBillingAddress.salutation',
+            'defaultShippingAddress.country',
+            'defaultShippingAddress.countryState',
+            'defaultShippingAddress.salutation',
+        ])->first();
 
         if (!$sourceCustomer instanceof CustomerEntity) {
             throw new \Exception(\sprintf('Customer with id: %s not found.', $customerId));
@@ -81,16 +82,16 @@ class CustomerPacker
 
         // TODO use enhancer
         $targetCustomer->getLanguage()->setLocaleCode([
-                'de' => 'DEU',
-                'li' => 'DEU',
-                'en' => 'ENG',
-                'ro' => 'ENG',
-                'cn' => 'ENG',
-                'pl' => 'POL',
-                'jp' => 'JPN',
-                'it' => 'ITA',
-                'es' => 'ESP',
-            ][\explode('-', $sourceCustomer->getLanguage()->getLocale()->getCode())[0]] ?? 'DEU');
+            'de' => 'DEU',
+            'li' => 'DEU',
+            'en' => 'ENG',
+            'ro' => 'ENG',
+            'cn' => 'ENG',
+            'pl' => 'POL',
+            'jp' => 'JPN',
+            'it' => 'ITA',
+            'es' => 'ESP',
+        ][\explode('-', $sourceCustomer->getLanguage()->getLocale()->getCode())[0]] ?? 'DEU');
 
         if ($sourceCustomer->getBirthday()) {
             $targetCustomer->setBirthday($sourceCustomer->getBirthday());

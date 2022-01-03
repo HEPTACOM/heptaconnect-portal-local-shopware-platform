@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Test\Unit\Support;
@@ -15,10 +16,10 @@ class LocaleMatcherTest extends TestCase
     public function testInstantMatch(): void
     {
         $messages = [];
-        $log = static function (string $l, string $m) use (&$messages) {
+        $log = static function (string $l, string $m) use (&$messages): void {
             $messages[$l][] = $m;
         };
-        $matcher = new LocaleMatcher(new class ($log) extends AbstractLogger {
+        $matcher = new LocaleMatcher(new class($log) extends AbstractLogger {
             private \Closure $onLog;
 
             public function __construct(\Closure $onLog)
@@ -26,23 +27,23 @@ class LocaleMatcherTest extends TestCase
                 $this->onLog = $onLog;
             }
 
-            public function log($level, $message, array $context = array())
+            public function log($level, $message, array $context = []): void
             {
                 $onLog = $this->onLog;
                 $onLog($level, $message);
             }
         });
-        self::assertSame('de-DE', $matcher->match(['de-DE'], 'de-DE'));
-        self::assertEmpty($messages);
+        static::assertSame('de-DE', $matcher->match(['de-DE'], 'de-DE'));
+        static::assertEmpty($messages);
     }
 
     public function testNoMatchDueToEmptyHaystack(): void
     {
         $messages = [];
-        $log = static function (string $l, string $m) use (&$messages) {
+        $log = static function (string $l, string $m) use (&$messages): void {
             $messages[$l][] = $m;
         };
-        $matcher = new LocaleMatcher(new class ($log) extends AbstractLogger {
+        $matcher = new LocaleMatcher(new class($log) extends AbstractLogger {
             private \Closure $onLog;
 
             public function __construct(\Closure $onLog)
@@ -50,23 +51,23 @@ class LocaleMatcherTest extends TestCase
                 $this->onLog = $onLog;
             }
 
-            public function log($level, $message, array $context = array())
+            public function log($level, $message, array $context = []): void
             {
                 $onLog = $this->onLog;
                 $onLog($level, $message);
             }
         });
-        self::assertNull($matcher->match([], 'de-DE'));
-        self::assertEmpty($messages);
+        static::assertNull($matcher->match([], 'de-DE'));
+        static::assertEmpty($messages);
     }
 
     public function testNoMatchDueToMissingEntry(): void
     {
         $messages = [];
-        $log = static function (string $l, string $m) use (&$messages) {
+        $log = static function (string $l, string $m) use (&$messages): void {
             $messages[$l][] = $m;
         };
-        $matcher = new LocaleMatcher(new class ($log) extends AbstractLogger {
+        $matcher = new LocaleMatcher(new class($log) extends AbstractLogger {
             private \Closure $onLog;
 
             public function __construct(\Closure $onLog)
@@ -74,23 +75,23 @@ class LocaleMatcherTest extends TestCase
                 $this->onLog = $onLog;
             }
 
-            public function log($level, $message, array $context = array())
+            public function log($level, $message, array $context = []): void
             {
                 $onLog = $this->onLog;
                 $onLog($level, $message);
             }
         });
-        self::assertNull($matcher->match(['en-GB'], 'de-DE'));
-        self::assertNotEmpty($messages['error'] ?? []);
+        static::assertNull($matcher->match(['en-GB'], 'de-DE'));
+        static::assertNotEmpty($messages['error'] ?? []);
     }
 
     public function testMatchButAmbiguousMatch(): void
     {
         $messages = [];
-        $log = static function (string $l, string $m) use (&$messages) {
+        $log = static function (string $l, string $m) use (&$messages): void {
             $messages[$l][] = $m;
         };
-        $matcher = new LocaleMatcher(new class ($log) extends AbstractLogger {
+        $matcher = new LocaleMatcher(new class($log) extends AbstractLogger {
             private \Closure $onLog;
 
             public function __construct(\Closure $onLog)
@@ -98,16 +99,16 @@ class LocaleMatcherTest extends TestCase
                 $this->onLog = $onLog;
             }
 
-            public function log($level, $message, array $context = array())
+            public function log($level, $message, array $context = []): void
             {
                 $onLog = $this->onLog;
                 $onLog($level, $message);
             }
         });
-        self::assertSame('de-AT', $matcher->match(['en-GB', 'de-AT', 'de-CH'], 'de'));
-        self::assertNotEmpty($messages['warning'] ?? []);
+        static::assertSame('de-AT', $matcher->match(['en-GB', 'de-AT', 'de-CH'], 'de'));
+        static::assertNotEmpty($messages['warning'] ?? []);
         $messages = [];
-        self::assertSame('de-AT', $matcher->match(['en-GB', 'de-AT', 'de-CH'], 'de-DE'));
-        self::assertNotEmpty($messages['warning'] ?? []);
+        static::assertSame('de-AT', $matcher->match(['en-GB', 'de-AT', 'de-CH'], 'de-DE'));
+        static::assertNotEmpty($messages['warning'] ?? []);
     }
 }

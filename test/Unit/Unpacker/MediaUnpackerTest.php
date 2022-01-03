@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Test\Unit\Unpacker;
@@ -8,8 +9,8 @@ use Heptacom\HeptaConnect\Portal\Base\Serialization\Contract\NormalizationRegist
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\LocaleMatcher;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\TranslationLocaleCache;
-use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\MediaUnpacker;
+use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Shopware\Core\Content\Media\MediaService;
@@ -40,7 +41,7 @@ class MediaUnpackerTest extends TestCase
                         $id => true,
                     ],
                 ][$r][$pk ?? ''] ?? false
-        );
+            );
 
         $unpacker = new MediaUnpacker(
             $this->createMock(MediaService::class),
@@ -54,18 +55,18 @@ class MediaUnpackerTest extends TestCase
         $media->getTitle()->setFallback('foobar');
         $media->getTitle()->setTranslation('de-DE', 'fööbär');
 
-        self::assertEquals([
+        static::assertEquals([
             'id' => $id,
             'translations' => [
-                'de-DE' =>  [
+                'de-DE' => [
                     'title' => 'fööbär',
                     'alt' => 'fööbär',
                 ],
-                'nl-NL' =>  [
+                'nl-NL' => [
                     'title' => 'foobar',
                     'alt' => 'foobar',
                 ],
-                'en-GB' =>  [
+                'en-GB' => [
                     'title' => 'foobar',
                     'alt' => 'foobar',
                 ],

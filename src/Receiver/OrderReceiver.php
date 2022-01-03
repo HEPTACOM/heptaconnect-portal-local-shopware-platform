@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver;
@@ -57,7 +58,7 @@ class OrderReceiver extends ReceiverContract
     ): void {
         $primaryKey = $entity->getPrimaryKey();
 
-        if (\is_null($primaryKey)) {
+        if ($primaryKey === null) {
             throw new \Exception('Unsupported order creation. Map first to an existing order to update'); // TODO: check types
         }
 
@@ -78,16 +79,20 @@ class OrderReceiver extends ReceiverContract
         switch ($entity->getOrderState()->getState()) {
             case OrderState::STATE_OPEN:
                 $orderState = OrderStates::STATE_OPEN;
+
                 break;
             case OrderState::STATE_PROGRESS:
                 $orderState = OrderStates::STATE_IN_PROGRESS;
+
                 break;
             case OrderState::STATE_COMPLETE:
                 $orderState = OrderStates::STATE_COMPLETED;
+
                 break;
             case OrderState::STATE_CANCELLED:
             default:
                 $orderState = OrderStates::STATE_CANCELLED;
+
                 break;
         }
 
@@ -242,6 +247,7 @@ class OrderReceiver extends ReceiverContract
             switch ($entity->isGross()) {
                 case true:
                     $taxStatus = CartPrice::TAX_STATE_GROSS;
+
                     break;
                 default:
                     $taxStatus = CartPrice::TAX_STATE_NET;
@@ -353,6 +359,7 @@ class OrderReceiver extends ReceiverContract
 
         if ($targetShippingAddressHash !== $sourceShippingAddressHash) {
             $targetShippingAddress['id'] = $targetShippingAddressHash;
+
             try {
                 $this->dal->repository('order_address')->create([$targetShippingAddress], $dalContext);
 
