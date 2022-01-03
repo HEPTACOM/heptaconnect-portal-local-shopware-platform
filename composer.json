@@ -62,6 +62,11 @@
             "Heptacom\\HeptaConnect\\Portal\\LocalShopwarePlatform\\Test\\": "test/"
         }
     },
+    "config": {
+        "allow-plugins": {
+            "infection/extension-installer": true
+        }
+    },
     "extra": {
         "heptaconnect": {
             "portals": [
@@ -71,11 +76,6 @@
         "unused": [
             "heptacom/heptaconnect-bridge-shopware-platform"
         ]
-    },
-    "config": {
-        "allow-plugins": {
-            "infection/extension-installer": true
-        }
     },
     "website": "https://heptaconnect.io"
 }
