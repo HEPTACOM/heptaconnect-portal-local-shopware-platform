@@ -96,7 +96,10 @@ class StateMachineTransitionWalker
             $newPaths = [];
 
             foreach ($paths as $path) {
-                foreach ($this->getActionsToReachTarget($transitions, \current($path)[self::STATE_NAME]) as $action => $state) {
+                foreach ($this->getActionsToReachTarget($transitions, \current($path)[self::STATE_NAME]) as $transition) {
+                    $action = $transition->getActionName();
+                    $state = $transition->getFromStateMachineState()->getTechnicalName();
+
                     if ($this->isStateInPath($path, $state)) {
                         continue;
                     }
@@ -137,7 +140,7 @@ class StateMachineTransitionWalker
 
         foreach ($transitions as $transition) {
             if ($transition->getToStateMachineState()->getTechnicalName() === $target) {
-                $result[$transition->getActionName()] = $transition->getFromStateMachineState()->getTechnicalName();
+                $result[$transition->getId()] = $transition;
             }
         }
 
