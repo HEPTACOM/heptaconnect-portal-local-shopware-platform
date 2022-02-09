@@ -41,6 +41,7 @@ use Shopware\Core\Checkout\Promotion\Cart\PromotionProcessor;
 use Shopware\Core\Checkout\Shipping\ShippingMethodEntity;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Defaults;
+use Shopware\Core\Framework\DataAbstractionLayer\Pricing\CashRoundingConfig;
 use Shopware\Core\System\Country\Aggregate\CountryState\CountryStateEntity;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Currency\CurrencyEntity;
@@ -168,7 +169,12 @@ class OrderEmitter extends EmitterContract
         $currency->setFactor(1);
         $currency->setSymbol('€');
         $currency->setPosition(1);
-        $currency->setDecimalPrecision(2);
+
+        if (\class_exists(CashRoundingConfig::class)) {
+            $currency->setItemRounding(new CashRoundingConfig(2, 0.01, true));
+        } elseif (method_exists($currency, 'setDecimalPrecision')) {
+            $currency->setDecimalPrecision(2);
+        }
 
         return $currency;
     }
