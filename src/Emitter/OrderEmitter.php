@@ -172,7 +172,7 @@ class OrderEmitter extends EmitterContract
 
         if (\class_exists(CashRoundingConfig::class)) {
             $currency->setItemRounding(new CashRoundingConfig(2, 0.01, true));
-        } elseif (method_exists($currency, 'setDecimalPrecision')) {
+        } elseif (\method_exists($currency, 'setDecimalPrecision')) {
             $currency->setDecimalPrecision(2);
         }
 
