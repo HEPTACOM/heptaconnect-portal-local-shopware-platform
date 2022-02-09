@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix function call on null in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Emitter\OrderEmitter`.
+- Fix compatibility with `shopware/core:^6.4` by supporting `\Shopware\Core\System\Currency\CurrencyEntity::setItemRounding` if it exists.
+
 ## [0.8.1] - 2021-12-07
 
 ### Fixed
