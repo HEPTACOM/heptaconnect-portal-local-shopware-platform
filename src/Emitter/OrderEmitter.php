@@ -88,8 +88,10 @@ class OrderEmitter extends EmitterContract
         $sourceCurrency = $source->getCurrency() ?? self::getDefaultCurrency();
 
         if ($sourceDelivery instanceof OrderDeliveryEntity) {
+            $targetDeliveryTrackingCode = $sourceDelivery->getTrackingCodes()[0] ?? null;
             $sourceShippingAddress = $source->getAddresses()->get($sourceDelivery->getShippingOrderAddressId());
         } else {
+            $targetDeliveryTrackingCode = null;
             $sourceShippingAddress = $sourceBillingAddress;
         }
 
@@ -140,7 +142,7 @@ class OrderEmitter extends EmitterContract
             ->setCurrency($targetCurrency)
             ->setBillingAddress($targetBillingAddress)
             ->setShippingAddress($targetShippingAddress)
-            ->setDeliveryTrackingCode($sourceDelivery->getTrackingCodes()[0] ?? null);
+            ->setDeliveryTrackingCode($targetDeliveryTrackingCode);
 
         $paymentMethod = new PaymentMethod();
         $paymentMethod->setPrimaryKey($sourceTransaction->getPaymentMethodId());
