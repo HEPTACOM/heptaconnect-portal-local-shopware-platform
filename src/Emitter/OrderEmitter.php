@@ -101,7 +101,7 @@ class OrderEmitter extends EmitterContract
 
         $targetBillingAddress = $this->getAddress($sourceBillingAddress);
         $targetShippingAddress = $this->getAddress($sourceShippingAddress);
-        $targetCustomer = $this->customerPacker->pack($source->getOrderCustomer()->getCustomerId(), $context->getStorage());
+        $targetCustomer = $this->customerPacker->pack($source->getOrderCustomer()->getCustomerId());
         $targetCustomer->setAddresses(new AddressCollection([
             $targetBillingAddress,
             $targetShippingAddress,
