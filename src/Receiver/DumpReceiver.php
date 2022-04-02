@@ -5,28 +5,29 @@ declare(strict_types=1);
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver;
 
 use Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract;
+use Heptacom\HeptaConnect\Dataset\Base\File\FileReferenceContract;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\Media;
+use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\MediaCollection;
+use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Product;
+use Heptacom\HeptaConnect\Portal\Base\File\FileReferenceResolverContract;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiveContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Reception\Contract\ReceiverContract;
-use Heptacom\HeptaConnect\Portal\Base\Serialization\Contract\DenormalizerInterface;
-use Heptacom\HeptaConnect\Portal\Base\Serialization\Contract\NormalizationRegistryContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\PrimaryKeyGenerator;
-use Psr\Http\Message\StreamInterface;
 use Ramsey\Uuid\Uuid;
 
 abstract class DumpReceiver extends ReceiverContract
 {
-    private NormalizationRegistryContract $normalizationRegistry;
+    private FileReferenceResolverContract $fileReferenceResolver;
 
     private string $supports;
 
     /**
      * @var class-string<\Heptacom\HeptaConnect\Dataset\Base\Contract\DatasetEntityContract>
      */
-    public function __construct(NormalizationRegistryContract $normalizationRegistry, string $supports)
+    public function __construct(FileReferenceResolverContract $fileReferenceResolver, string $supports)
     {
         $this->supports = $supports;
-        $this->normalizationRegistry = $normalizationRegistry;
+        $this->fileReferenceResolver = $fileReferenceResolver;
     }
 
     public function supports(): string
@@ -49,18 +50,23 @@ abstract class DumpReceiver extends ReceiverContract
 
         $content = \json_encode($entity, \JSON_PRETTY_PRINT | \JSON_PARTIAL_OUTPUT_ON_ERROR | \JSON_UNESCAPED_SLASHES);
         \file_put_contents($dumpDir . $id . '.json', $content);
+        $mediaDir = $dumpDir . 'media/';
+
+        if (!(\is_dir($mediaDir) || @\mkdir($mediaDir, 0777, true))) {
+            return;
+        }
 
         foreach ($this->getMedias($entity) as $mediaIndex => $media) {
-            $mediaStream = $this->getMediaStream($media);
+            $fileReference = $media->getFile();
 
-            if ($mediaStream instanceof StreamInterface) {
-                $mediaDir = $dumpDir . 'media/';
-                $ext = \explode('/', $media->getMimeType(), 2)[1] ?? 'bin';
-
-                if (\is_dir($mediaDir) || @\mkdir($mediaDir, 0777, true)) {
-                    \file_put_contents($mediaDir . $mediaIndex . '_' . $id . '.' . $ext, $mediaStream->getContents());
-                }
+            if (!$fileReference instanceof FileReferenceContract) {
+                continue;
             }
+
+            $file = $this->fileReferenceResolver->resolve($fileReference);
+            $ext = \explode('/', $media->getMimeType(), 2)[1] ?? 'bin';
+
+            \file_put_contents($mediaDir . $mediaIndex . '_' . $id . '.' . $ext, $file->getContents());
         }
 
         $entity->setPrimaryKey($id);
@@ -80,22 +86,16 @@ abstract class DumpReceiver extends ReceiverContract
             $media = $entity->getAttachment(Media::class);
             yield from $this->getMedias($media);
         }
-    }
 
-    private function getMediaStream(Media $media): ?StreamInterface
-    {
-        $denormalizer = $this->normalizationRegistry->getDenormalizer('stream');
+        if ($entity->hasAttached(MediaCollection::class)) {
+            /** @var MediaCollection $medias */
+            $medias = $entity->getAttachment(MediaCollection::class);
 
-        if (!$denormalizer instanceof DenormalizerInterface) {
-            return null;
+            yield from $medias;
         }
 
-        $stream = $denormalizer->denormalize($media->getNormalizedStream(), 'stream');
-
-        if (!$stream instanceof StreamInterface) {
-            return null;
+        if ($entity instanceof Product) {
+            yield from $entity->getMedias();
         }
-
-        return $stream;
     }
 }
