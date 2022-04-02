@@ -42,6 +42,7 @@ use Shopware\Core\Checkout\Promotion\Cart\PromotionProcessor;
 use Shopware\Core\Checkout\Shipping\ShippingMethodEntity;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Defaults;
+use Shopware\Core\Framework\DataAbstractionLayer\Pricing\CashRoundingConfig;
 use Shopware\Core\System\Country\Aggregate\CountryState\CountryStateEntity;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Currency\CurrencyEntity;
@@ -89,8 +90,10 @@ class OrderEmitter extends EmitterContract
         $sourceCurrency = $source->getCurrency() ?? self::getDefaultCurrency();
 
         if ($sourceDelivery instanceof OrderDeliveryEntity) {
+            $targetDeliveryTrackingCode = $sourceDelivery->getTrackingCodes()[0] ?? null;
             $sourceShippingAddress = $source->getAddresses()->get($sourceDelivery->getShippingOrderAddressId());
         } else {
+            $targetDeliveryTrackingCode = null;
             $sourceShippingAddress = $sourceBillingAddress;
         }
 
@@ -99,7 +102,7 @@ class OrderEmitter extends EmitterContract
 
         $targetBillingAddress = $this->getAddress($sourceBillingAddress);
         $targetShippingAddress = $this->getAddress($sourceShippingAddress);
-        $targetCustomer = $this->customerPacker->pack($source->getOrderCustomer()->getCustomerId(), $context->getStorage());
+        $targetCustomer = $this->customerPacker->pack($source->getOrderCustomer()->getCustomerId());
         $targetCustomer->setAddresses(new AddressCollection([
             $targetBillingAddress,
             $targetShippingAddress,
@@ -146,7 +149,7 @@ class OrderEmitter extends EmitterContract
             ->setCurrency($targetCurrency)
             ->setBillingAddress($targetBillingAddress)
             ->setShippingAddress($targetShippingAddress)
-            ->setDeliveryTrackingCode($sourceDelivery->getTrackingCodes()[0] ?? null);
+            ->setDeliveryTrackingCode($targetDeliveryTrackingCode);
 
         $paymentMethod = new PaymentMethod();
         $paymentMethod->setPrimaryKey($sourceTransaction->getPaymentMethodId());
@@ -173,7 +176,12 @@ class OrderEmitter extends EmitterContract
         $currency->setFactor(1);
         $currency->setSymbol('€');
         $currency->setPosition(1);
-        $currency->setDecimalPrecision(2);
+
+        if (\class_exists(CashRoundingConfig::class)) {
+            $currency->setItemRounding(new CashRoundingConfig(2, 0.01, true));
+        } elseif (\method_exists($currency, 'setDecimalPrecision')) {
+            $currency->setDecimalPrecision(2);
+        }
 
         return $currency;
     }

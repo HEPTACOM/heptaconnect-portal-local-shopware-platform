@@ -25,6 +25,13 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 
 ### Security
 
+## [0.8.2] - 2022-02-09
+
+### Fixed
+
+- Fix function call on null in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Emitter\OrderEmitter`.
+- Fix compatibility with `shopware/core:^6.4` by supporting `\Shopware\Core\System\Currency\CurrencyEntity::setItemRounding` if it exists.
+
 ## [0.8.1] - 2021-12-07
 
 ### Fixed
