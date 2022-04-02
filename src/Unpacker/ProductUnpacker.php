@@ -262,15 +262,23 @@ class ProductUnpacker
             }
         }
 
+        foreach ($product->getMedias() as $media) {
+            $unpackedMedia = $this->mediaUnpacker->unpack($media);
+
+            if ($unpackedMedia !== []) {
+                $unpackedMedias[] = $unpackedMedia;
+            }
+        }
+
         if ($unpackedMedias === []) {
             return [];
         }
 
-        $productMedias = \array_map(fn (array $unpackedMedia): array => [
+        $productMedias = \array_map(fn (array $unpackedMedia, int $position): array => [
             'id' => $this->existingIdentifierCache->getProductMediaId($productId, $unpackedMedia['id']),
             'media' => $unpackedMedia,
-            'position' => 0,
-        ], $unpackedMedias);
+            'position' => $position,
+        ], $unpackedMedias, \array_keys($unpackedMedias));
 
         return $productMedias;
     }
