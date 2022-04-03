@@ -23,6 +23,8 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 
 ### Removed
 
+- Remove support for `shopware/core: >=6.2.1 <6.4`
+
 ### Fixed
 
 ### Security
