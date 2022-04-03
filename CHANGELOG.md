@@ -19,15 +19,21 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 
 ### Deprecated
 
+### Removed
+
+### Fixed
+
+### Security
+
+## [0.9.0.0] - 2022-04-02
+
+### Deprecated
+
 - Deprecate `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Portal` as renamed to `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\LocalShopwarePlatformPortal`
 
 ### Removed
 
 - Remove support for `shopware/core: >=6.2.1 <6.4`
-
-### Fixed
-
-### Security
 
 ## [0.8.2] - 2022-02-09
 

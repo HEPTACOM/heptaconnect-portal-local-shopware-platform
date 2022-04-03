@@ -6,7 +6,7 @@
         "proprietary"
     ],
     "type": "library",
-    "version": "0.8.2",
+    "version": "0.9.0.0",
     "keywords": [
         "heptaconnect-portal"
     ],
@@ -25,12 +25,12 @@
         "php": ">=7.4",
         "ext-json": "*",
         "bentools/iterable-functions": "^1.4",
-        "heptacom/heptaconnect-bridge-shopware-platform": "^0.8",
-        "heptacom/heptaconnect-core": "^0.8",
-        "heptacom/heptaconnect-dataset-base": "^0.8",
-        "heptacom/heptaconnect-dataset-ecommerce": "^0.8",
-        "heptacom/heptaconnect-portal-base": "^0.8",
-        "heptacom/heptaconnect-storage-base": "^0.8",
+        "heptacom/heptaconnect-bridge-shopware-platform": "^0.9",
+        "heptacom/heptaconnect-core": "^0.9",
+        "heptacom/heptaconnect-dataset-base": "^0.9",
+        "heptacom/heptaconnect-dataset-ecommerce": "^0.9",
+        "heptacom/heptaconnect-portal-base": "^0.9",
+        "heptacom/heptaconnect-storage-base": "^0.9",
         "psr/container": "^1",
         "psr/http-message": "^1",
         "ramsey/uuid": "^3.5 || ^4",
