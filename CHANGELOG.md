@@ -19,6 +19,8 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 
 ### Deprecated
 
+- Deprecate `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Portal` as renamed to `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\LocalShopwarePlatformPortal`
+
 ### Removed
 
 ### Fixed
