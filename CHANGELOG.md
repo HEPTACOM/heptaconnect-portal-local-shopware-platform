@@ -19,6 +19,24 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 
 ### Deprecated
 
+### Removed
+
+### Fixed
+
+### Security
+
+## [0.9.0.0] - 2022-04-05
+
+### Added
+
+- Interpret `\Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Product::getMedias` to receive medias on products
+
+### Changed
+
+- Use `\Heptacom\HeptaConnect\Dataset\Ecommerce\Media\Media::getFile` for transferring instead of `\Heptacom\HeptaConnect\Dataset\Ecommerce\Media\Media::getNormalizedStream`
+
+### Deprecated
+
 - Deprecate `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Portal` as renamed to `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\LocalShopwarePlatformPortal`
 
 ### Removed
@@ -27,7 +45,7 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 
 ### Fixed
 
-### Security
+- Product medias unpacked by `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\ProductUnpacker` have position by appearance in the product entity
 
 ## [0.8.2] - 2022-02-09
 
