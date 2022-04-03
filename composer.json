@@ -70,6 +70,7 @@
     "extra": {
         "heptaconnect": {
             "portals": [
+                "Heptacom\\HeptaConnect\\Portal\\LocalShopwarePlatform\\LocalShopwarePlatformPortal",
                 "Heptacom\\HeptaConnect\\Portal\\LocalShopwarePlatform\\Portal"
             ]
         },
