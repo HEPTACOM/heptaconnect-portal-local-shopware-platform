@@ -23,6 +23,8 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 
 ### Fixed
 
+- Fix portal node service container extension to work with both portal FQCNs `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\LocalShopwarePlatformPortal` and the deprecated `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Portal`
+
 ### Security
 
 ## [0.9.0.0] - 2022-04-05

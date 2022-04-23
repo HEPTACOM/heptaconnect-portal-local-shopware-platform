@@ -8,7 +8,7 @@ use Heptacom\HeptaConnect\Core\Portal\Contract\PortalStackServiceContainerBuilde
 use Heptacom\HeptaConnect\Portal\Base\Portal\Contract\PortalContract;
 use Heptacom\HeptaConnect\Portal\Base\Portal\PortalExtensionCollection;
 use Heptacom\HeptaConnect\Portal\Base\StorageKey\Contract\PortalNodeKeyInterface;
-use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Portal;
+use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\LocalShopwarePlatformPortal;
 use Psr\Container\ContainerInterface;
 use Shopware\Core\Content\Media\File\FileSaver;
 use Shopware\Core\Content\Media\MediaService;
@@ -75,7 +75,7 @@ class ShopwarePortalStackServiceContainerBuilder implements PortalStackServiceCo
     ): ContainerBuilder {
         $result = $this->decorated->build($portal, $portalExtensions, $portalNodeKey);
 
-        if ($portal instanceof Portal) {
+        if ($portal instanceof LocalShopwarePlatformPortal) {
             $this->prepareContainer($result);
         }
 
