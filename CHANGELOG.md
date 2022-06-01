@@ -17,8 +17,6 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 
 ### Changed
 
-- Change address splitting on customer creation in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\CustomerReceiver::getAddress` to satisfy the shopware standard address representation.
-
 ### Deprecated
 
 ### Removed
@@ -26,6 +24,18 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 ### Fixed
 
 ### Security
+
+## [0.9.0.2] - 2022-06-01
+
+### Fixed
+
+- Fixed address splitting on customer creation in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\CustomerReceiver::getAddress` to satisfy the shopware standard address representation regarding street and house number. 
+
+## [0.9.0.1] - 2022-04-23
+
+### Fixed
+
+- Fix portal node service container extension to work with both portal FQCNs `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\LocalShopwarePlatformPortal` and the deprecated `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Portal`
 
 ## [0.9.0.0] - 2022-04-05
 
