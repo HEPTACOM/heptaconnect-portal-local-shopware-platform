@@ -331,7 +331,7 @@ class CustomerReceiver extends ReceiverContract
             'firstName' => $address->getNames()->offsetGet(0) ?? '',
             'lastName' => $address->getNames()->offsetGet(1) ?? '',
             'vatId' => $address->getVatId(),
-            'phoneNumber' => $address->getPhoneNumber()
+            'phoneNumber' => $address->getPhoneNumber(),
         ];
 
         $salutation = $address->getSalutation();
