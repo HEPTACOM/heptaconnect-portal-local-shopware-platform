@@ -327,14 +327,11 @@ class CustomerReceiver extends ReceiverContract
             'countryId' => $address->getCountry()->getPrimaryKey(),
             'city' => $address->getCity(),
             'zipcode' => $address->getZipcode(),
-            'street' => $address->getStreet() ?: 'PLACEHOLDER',
+            'street' => $address->getStreet() ? $address->getStreet() . ' ' . $address->getHouseNo() : 'PLACEHOLDER',
             'firstName' => $address->getNames()->offsetGet(0) ?? '',
             'lastName' => $address->getNames()->offsetGet(1) ?? '',
             'vatId' => $address->getVatId(),
             'phoneNumber' => $address->getPhoneNumber(),
-            'customFields' => [
-                'housenumber' => $address->getHouseNo(),
-            ],
         ];
 
         $salutation = $address->getSalutation();
