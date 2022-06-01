@@ -17,6 +17,8 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 
 ### Changed
 
+- Change address splitting on customer creation in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\CustomerReceiver::getAddress` to satisfy the shopware standard address representation.
+
 ### Deprecated
 
 ### Removed
