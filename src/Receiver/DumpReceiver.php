@@ -40,8 +40,7 @@ abstract class DumpReceiver extends ReceiverContract
         ReceiveContextInterface $context
     ): void {
         $id = PrimaryKeyGenerator::generatePrimaryKey($entity, '0ff4e0c2-fc66-4c40-a572-66dee8195f09') ?? (string) Uuid::uuid4()->getHex();
-
-        $className = \basename(\str_replace('\\', '/', $this->supports()));
+        $className = \basename(\str_replace('\\', '/', (string) $this->getSupportedEntityType()));
         $dumpDir = __DIR__ . '/../../__dump/' . $className . '/';
 
         if (!\is_dir($dumpDir) && !@\mkdir($dumpDir, 0777, true)) {
