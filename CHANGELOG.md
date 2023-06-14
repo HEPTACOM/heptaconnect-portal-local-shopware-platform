@@ -23,6 +23,8 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 
 ### Fixed
 
+- Add array_filter in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker` to remove null values from translation locale result to prevent array offset exception.
+
 ### Security
 
 ## [0.9.0.2] - 2022-06-01
