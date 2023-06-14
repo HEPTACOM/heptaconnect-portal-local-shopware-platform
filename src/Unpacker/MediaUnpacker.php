@@ -45,7 +45,7 @@ class MediaUnpacker
 
                 $blob = $file->getContents();
 
-                if (\extension_loaded('fileinfo')) {
+                if (\extension_loaded('fileinfo') && \class_exists(MimeTypes::class)) {
                     $contentType = \finfo_buffer(\finfo_open(FILEINFO_MIME_TYPE), $blob);
                     $fileExtension = (new MimeTypes())->getExtensions($contentType)[0] ?? null;
                 } else {

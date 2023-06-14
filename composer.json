@@ -44,7 +44,8 @@
         "phpunit/phpunit": ">=9.3 <10"
     },
     "suggest": {
-        "ext-fileinfo": "Adds possiblilty to guess mimeType and extension in MeidaUnpacker"
+        "ext-fileinfo": "Adds possiblilty to guess mimeType and extension in MeidaUnpacker",
+        "symfony/mime": "Adds possiblilty to guess mimeType and extension in MeidaUnpacker"
     },
     "conflict": {
         "nikic/php-parser": "4.7.0"
