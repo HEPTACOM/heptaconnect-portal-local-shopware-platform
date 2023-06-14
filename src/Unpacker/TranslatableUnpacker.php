@@ -30,7 +30,8 @@ class TranslatableUnpacker
     public function unpack(TranslatableInterface $translatable, string $field): array
     {
         $result = [];
-        $knownLocales = $this->translationLocaleCache->getLocales();
+        $knownLocales = \array_filter($this->translationLocaleCache->getLocales(), 'is_string');
+
 
         foreach ($knownLocales as $localeCode) {
             $result[$localeCode][$field] = $translatable->getTranslation($localeCode, true);
