@@ -36,19 +36,23 @@ class ProductReceiver extends ReceiverContract
         $productUpserts = [];
 
         foreach ($entities as $product) {
-            $payload = $this->productUnpacker->unpack($product);
-            $id = $payload['id'];
-            $productIds[] = $id;
-            $coverId = $payload['coverId'];
+            try {
+                $payload = $this->productUnpacker->unpack($product);
+                $id = $payload['id'];
+                $productIds[] = $id;
+                $coverId = $payload['coverId'];
 
-            // separate cover update to allow correct dependency order
-            unset($payload['coverId']);
+                // separate cover update to allow correct dependency order
+                unset($payload['coverId']);
 
-            $productUpserts[] = $payload;
-            $productUpserts[] = [
-                'id' => $id,
-                'coverId' => $coverId,
-            ];
+                $productUpserts[] = $payload;
+                $productUpserts[] = [
+                    'id' => $id,
+                    'coverId' => $coverId,
+                ];
+            } catch (\Throwable $exception) {
+                $context->markAsFailed($product, $exception);
+            }
         }
 
         $deleteProductPriceStmts = [];
