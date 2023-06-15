@@ -10,6 +10,7 @@ use Heptacom\HeptaConnect\Portal\Base\File\FileReferenceResolverContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Shopware\Core\Content\Media\MediaService;
 use Shopware\Core\Framework\Uuid\Uuid;
+use Symfony\Component\Mime\MimeTypes;
 
 class MediaUnpacker
 {
@@ -41,10 +42,16 @@ class MediaUnpacker
 
             if ($fileReference instanceof FileReferenceContract) {
                 $file = $this->fileReferenceResolver->resolve($fileReference);
+
+                $blob = $file->getContents();
+
+                $contentType = \finfo_buffer(\finfo_open(\FILEINFO_MIME_TYPE), $blob);
+                $fileExtension = (new MimeTypes())->getExtensions($contentType)[0] ?? null;
+
                 $mediaId = $this->mediaService->saveFile(
-                    $file->getContents(),
-                    \explode('/', $source->getMimeType(), 2)[1] ?? 'bin',
-                    $source->getMimeType(),
+                    $blob,
+                    $fileExtension,
+                    $contentType,
                     $mediaId,
                     $this->dalAccess->getContext(),
                     'product',

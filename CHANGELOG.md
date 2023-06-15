@@ -15,6 +15,9 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 
 ### Added
 
+- Add guessing of mimeType and extension in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\MediaUnpacker`
+- Add composer dependency `ext-fileinfo:*` for mimeType guessing in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\MediaUnpacker`
+
 ### Changed
 
 ### Deprecated

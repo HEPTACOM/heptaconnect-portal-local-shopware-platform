@@ -24,6 +24,7 @@
     "require": {
         "php": ">=7.4",
         "ext-json": "*",
+        "ext-fileinfo": "*",
         "bentools/iterable-functions": "^1.4",
         "heptacom/heptaconnect-bridge-shopware-platform": "~0.9",
         "heptacom/heptaconnect-core": "~0.9",
