@@ -24,6 +24,7 @@
     "require": {
         "php": ">=7.4",
         "ext-json": "*",
+        "ext-fileinfo": "*",
         "bentools/iterable-functions": "^1.4",
         "heptacom/heptaconnect-bridge-shopware-platform": "~0.9",
         "heptacom/heptaconnect-core": "~0.9",
@@ -42,10 +43,6 @@
     "require-dev": {
         "infection/infection": ">=0.21",
         "phpunit/phpunit": ">=9.3 <10"
-    },
-    "suggest": {
-        "ext-fileinfo": "Adds possiblilty to guess mimeType and extension in MeidaUnpacker",
-        "symfony/mime": "Adds possiblilty to guess mimeType and extension in MeidaUnpacker"
     },
     "conflict": {
         "nikic/php-parser": "4.7.0"

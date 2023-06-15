@@ -45,13 +45,8 @@ class MediaUnpacker
 
                 $blob = $file->getContents();
 
-                if (\extension_loaded('fileinfo') && \class_exists(MimeTypes::class)) {
-                    $contentType = \finfo_buffer(\finfo_open(FILEINFO_MIME_TYPE), $blob);
-                    $fileExtension = (new MimeTypes())->getExtensions($contentType)[0] ?? null;
-                } else {
-                    $contentType = $source->getMimeType();
-                    $fileExtension = \explode('/', $source->getMimeType(), 2)[1] ?? 'bin';
-                }
+                $contentType = \finfo_buffer(\finfo_open(\FILEINFO_MIME_TYPE), $blob);
+                $fileExtension = (new MimeTypes())->getExtensions($contentType)[0] ?? null;
 
                 $mediaId = $this->mediaService->saveFile(
                     $blob,
