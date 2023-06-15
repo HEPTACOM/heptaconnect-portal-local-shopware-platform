@@ -24,6 +24,7 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 ### Fixed
 
 - Add array_filter in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker` to remove null values from translation locale result to prevent array offset exception.
+- Fix a bug when mapping property ids with a composite primary key in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\ProductReceiver`
 
 ### Security
 

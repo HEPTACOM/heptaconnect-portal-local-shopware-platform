@@ -62,9 +62,8 @@ class ProductReceiver extends ReceiverContract
                 static fn (string $id): array => ['id' => $id]
             );
             // TODO optimize to delete on unused
-            $deleteProductPropertyStmts = \iterable_map(
-                $this->dal->ids('product_property', (new Criteria())->addFilter(new EqualsAnyFilter('productId', $productIds))),
-                static fn (string $id): array => ['id' => $id]
+            $deleteProductPropertyStmts = \iterable_to_array(
+                $this->dal->ids('product_property', (new Criteria())->addFilter(new EqualsAnyFilter('productId', $productIds)))
             );
 
             $deleteProductVisibilityIds = [];
