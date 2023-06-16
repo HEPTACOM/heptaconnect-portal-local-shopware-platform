@@ -28,6 +28,7 @@ use Heptacom\HeptaConnect\Portal\Base\Emission\Contract\EmitterContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Packer\CustomerPacker;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Packer\OrderStatePacker;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
+use Shopware\Core\Checkout\Cart\LineItem\LineItem as ShopwareLineItem;
 use Shopware\Core\Checkout\Cart\Price\Struct\CalculatedPrice;
 use Shopware\Core\Checkout\Cart\Tax\Struct\CalculatedTax;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
@@ -287,7 +288,7 @@ class OrderEmitter extends EmitterContract
 
         /** @var OrderLineItemEntity $sourceLineItem */
         foreach ($source->getLineItems() as $sourceLineItem) {
-            if (($sourceProduct = $sourceLineItem->getProduct()) instanceof ProductEntity) {
+            if ($sourceLineItem->getType() === ShopwareLineItem::PRODUCT_LINE_ITEM_TYPE) {
                 $configurations = \array_filter(\array_map(function (array $optionAssignment) {
                     $group = \trim($optionAssignment['group'] ?? '');
                     $option = \trim($optionAssignment['option'] ?? '');
@@ -298,11 +299,12 @@ class OrderEmitter extends EmitterContract
                 $targetLineItem = new LineItemProduct();
 
                 $targetLineItem->getDescription()->setFallback(\implode(', ', $configurations));
-                $targetLineItem->setNumber($sourceProduct->getProductNumber());
+                $productNumber = $sourceLineItem->getPayload()['productNumber'] ?? null;
+                $targetLineItem->setNumber($productNumber);
 
                 $product = new Product();
-                $product->setPrimaryKey($sourceProduct->getId());
-                $product->setNumber($sourceProduct->getProductNumber());
+                $product->setPrimaryKey($sourceLineItem->getReferencedId());
+                $product->setNumber($productNumber);
 
                 $targetLineItem->setProduct($product);
             } elseif ($sourceLineItem->getType() === PromotionProcessor::LINE_ITEM_TYPE) {
