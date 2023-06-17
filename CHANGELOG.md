@@ -29,6 +29,7 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 - Add array_filter in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\TranslatableUnpacker` to remove null values from translation locale result to prevent array offset exception.
 - Fix a bug when mapping property ids with a composite primary key in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\ProductReceiver`
 - Add try catch on product unpacking in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\ProductReceiver` to prevent a complete fail of the whole batch.
+- Fix conversion of Shopware product lineitems depending on the products to still exist in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Emitter\OrderEmitter`
 
 ### Security
 
