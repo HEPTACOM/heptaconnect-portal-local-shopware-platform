@@ -26,6 +26,7 @@ use Heptacom\HeptaConnect\Dataset\Ecommerce\Product\Product;
 use Heptacom\HeptaConnect\Portal\Base\Emission\Contract\EmitContextInterface;
 use Heptacom\HeptaConnect\Portal\Base\Emission\Contract\EmitterContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Packer\CustomerPacker;
+use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Packer\OrderCustomerPacker;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Packer\OrderStatePacker;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Shopware\Core\Checkout\Cart\LineItem\LineItem as ShopwareLineItem;
@@ -41,7 +42,6 @@ use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Checkout\Promotion\Cart\PromotionProcessor;
 use Shopware\Core\Checkout\Shipping\ShippingMethodEntity;
-use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\DataAbstractionLayer\Pricing\CashRoundingConfig;
 use Shopware\Core\System\Country\Aggregate\CountryState\CountryStateEntity;
@@ -56,11 +56,18 @@ class OrderEmitter extends EmitterContract
 
     private OrderStatePacker $orderStatePacker;
 
-    public function __construct(DalAccess $dal, CustomerPacker $customerPacker, OrderStatePacker $orderStatePacker)
-    {
+    private OrderCustomerPacker $orderCustomerPacker;
+
+    public function __construct(
+        DalAccess $dal,
+        CustomerPacker $customerPacker,
+        OrderStatePacker $orderStatePacker,
+        OrderCustomerPacker $orderCustomerPacker
+    ) {
         $this->dal = $dal;
         $this->customerPacker = $customerPacker;
         $this->orderStatePacker = $orderStatePacker;
+        $this->orderCustomerPacker = $orderCustomerPacker;
     }
 
     public function supports(): string
@@ -73,10 +80,14 @@ class OrderEmitter extends EmitterContract
         $source = $this->dal->read('order', [$externalId], [
             'orderCustomer',
             'currency',
+            'language.locale',
             'addresses.salutation',
             'addresses.country',
             'addresses.countryState',
             'deliveries.shippingMethod',
+            'deliveries.shippingOrderAddress.salutation',
+            'deliveries.shippingOrderAddress.country',
+            'deliveries.shippingOrderAddress.countryState',
             'transactions.paymentMethod',
             'lineItems.product',
         ])->first();
@@ -103,11 +114,19 @@ class OrderEmitter extends EmitterContract
 
         $targetBillingAddress = $this->getAddress($sourceBillingAddress);
         $targetShippingAddress = $this->getAddress($sourceShippingAddress);
-        $targetCustomer = $this->customerPacker->pack($source->getOrderCustomer()->getCustomerId());
-        $targetCustomer->setAddresses(new AddressCollection([
-            $targetBillingAddress,
-            $targetShippingAddress,
-        ]));
+
+        try {
+            $targetCustomer = $this->customerPacker->pack($source->getOrderCustomer()->getCustomerId());
+            $targetCustomer->setAddresses(new AddressCollection([
+                $targetBillingAddress,
+                $targetShippingAddress,
+            ]));
+        } catch (\Throwable $e) {
+            $orderCustomer = $source->getOrderCustomer();
+            $orderCustomer->setOrder($orderCustomer->getOrder() ?? $source);
+            $targetCustomer = $this->orderCustomerPacker->pack($orderCustomer);
+        }
+
         $targetLineItems = $this->getLineItems($source);
 
         $target = new Order();
