@@ -17,6 +17,7 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 
 - Add guessing of mimeType and extension in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\MediaUnpacker`
 - Add composer dependency `ext-fileinfo:*` for mimeType guessing in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\MediaUnpacker`
+- Add `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Packer\OrderCustomerPacker` to pack an order customer into a customer dataset entity
 
 ### Changed
 
@@ -30,6 +31,7 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 - Fix a bug when mapping property ids with a composite primary key in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\ProductReceiver`
 - Add try catch on product unpacking in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\ProductReceiver` to prevent a complete fail of the whole batch.
 - Fix conversion of Shopware product lineitems depending on the products to still exist in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Emitter\OrderEmitter`
+- Fix emission of Shopware order, when a customer account is not present anymore, by relying on information of the order customer
 
 ### Security
 
