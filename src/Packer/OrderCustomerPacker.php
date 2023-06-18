@@ -35,7 +35,7 @@ class OrderCustomerPacker
     public function pack(OrderCustomerEntity $source): Customer
     {
         $targetCustomer = new Customer();
-        $targetCustomer->setPrimaryKey('order-customer:' . $source->getCustomerId());
+        $targetCustomer->setPrimaryKey('order-customer:' . $source->getId());
 
         $salutation = new Salutation();
 
