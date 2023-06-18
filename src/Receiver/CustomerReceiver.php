@@ -92,7 +92,7 @@ class CustomerReceiver extends ReceiverContract
             'groupId' => $customerGroupId,
             'languageId' => $this->idCache->getLanguageId(self::getLocale($entity)), // TODO use enhancer
             'customerNumber' => $entity->getNumber(),
-            'salutationId' => $this->getFallbackSalutation($context)->getId(),
+            'salutationId' => $this->getSalutationId($entity->getSalutation()),
             'firstName' => $entity->getNames()->first(),
             'lastName' => $entity->getNames()->last(),
             'company' => $entity->getCompany(),
@@ -181,6 +181,7 @@ class CustomerReceiver extends ReceiverContract
         $customer = [
             'id' => $entity->getPrimaryKey(),
             'customerNumber' => $entity->getNumber(),
+            'salutationId' => $this->getSalutationId($entity->getSalutation()),
             'firstName' => $entity->getNames()->first(),
             'lastName' => $entity->getNames()->last(),
             'company' => $entity->getCompany(),
@@ -294,6 +295,30 @@ class CustomerReceiver extends ReceiverContract
         throw new \Exception('There are no salutations.');
     }
 
+    protected function getSalutationId(?Salutation $salutation): string
+    {
+        if ($salutation instanceof Salutation) {
+            $salutationId = $salutation->getPrimaryKey();
+
+            if ($this->dal->idExists('salutation', $salutationId)) {
+                return (string) $salutationId;
+            }
+
+            $salutationCriteria = new Criteria();
+            $salutationCriteria->addFilter(new EqualsFilter('salutationKey', $salutation->getSlug()));
+
+            foreach ($this->dal->ids('salutation', $salutationCriteria) as $id) {
+                $salutationId = $id;
+                $salutation->setPrimaryKey($salutationId);
+                break;
+            }
+        } else {
+            $salutationId = $this->getFallbackSalutation($this->dal->getContext())->getId();
+        }
+
+        return $salutationId;
+    }
+
     protected function getCustomerPriceGroupId(
         string $code,
         EntityRepositoryInterface $tagRepository,
@@ -321,6 +346,7 @@ class CustomerReceiver extends ReceiverContract
         $targetAddress = [
             'id' => $address->getPrimaryKey(),
             'title' => $address->getTitle(),
+            'salutationId' => $this->getSalutationId($address->getSalutation()),
             'company' => $address->getCompany(),
             'additionalAddressLine1' => $address->getAdditionalLines()->offsetGet(0) ?? '',
             'additionalAddressLine2' => $address->getAdditionalLines()->offsetGet(1) ?? '',
@@ -333,21 +359,6 @@ class CustomerReceiver extends ReceiverContract
             'vatId' => $address->getVatId(),
             'phoneNumber' => $address->getPhoneNumber(),
         ];
-
-        $salutation = $address->getSalutation();
-
-        if ($salutation instanceof Salutation) {
-            $salutationCriteria = new Criteria();
-            $salutationCriteria->addFilter(new EqualsFilter('salutationKey', $salutation->getSlug()));
-
-            $salutationId = $this->dal->repository('salutation')->searchIds($salutationCriteria, $context)->firstId();
-        } else {
-            $salutationId = $this->getFallbackSalutation($context)->getId();
-        }
-
-        if ($salutationId) {
-            $targetAddress['salutationId'] = $salutationId;
-        }
 
         if (!$targetAddress['countryId']) {
             $countryCriteria = new Criteria();

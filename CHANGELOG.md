@@ -32,6 +32,7 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 - Add try catch on product unpacking in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\ProductReceiver` to prevent a complete fail of the whole batch.
 - Fix conversion of Shopware product lineitems depending on the products to still exist in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Emitter\OrderEmitter`
 - Fix emission of Shopware order, when a customer account is not present anymore, by relying on information of the order customer
+- Use same salutation lookup for customer address and customer in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\CustomerReceiver`, so customer do not only use fallback salutation
 
 ### Security
 
