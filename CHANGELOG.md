@@ -18,6 +18,7 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 - Add guessing of mimeType and extension in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\MediaUnpacker`
 - Add composer dependency `ext-fileinfo:*` for mimeType guessing in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Unpacker\MediaUnpacker`
 - Add `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Packer\OrderCustomerPacker` to pack an order customer into a customer dataset entity
+- Add update logic for customer addresses in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\CustomerReceiver`
 
 ### Changed
 
