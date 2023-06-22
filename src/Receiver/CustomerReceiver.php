@@ -68,9 +68,6 @@ class CustomerReceiver extends ReceiverContract
         );
 
         if (!$this->dal->idExists('customer', $entity->getPrimaryKey())) {
-            // TODO: support creating customers
-            // throw new \Exception('Creating customers is not (yet) supported by this portal.');
-
             $this->createCustomer($entity, $dalContext, $context);
         } else {
             $this->updateCustomer($entity, $dalContext, $context);
@@ -103,7 +100,9 @@ class CustomerReceiver extends ReceiverContract
         ];
 
         /** @var SalesChannelEntity $salesChannel */
-        $salesChannel = $this->dal->repository('sales_channel')->search(new Criteria([$customer['salesChannelId']]), $context)->first();
+        $salesChannel = $this->dal->repository('sales_channel')
+            ->search(new Criteria([$customer['salesChannelId']]), $context)->first();
+
         $customer['defaultPaymentMethodId'] = $salesChannel->getPaymentMethodId();
 
         if ($customerPriceGroup = $entity->getCustomerPriceGroup()) {
@@ -234,18 +233,15 @@ class CustomerReceiver extends ReceiverContract
         }
 
         if ($entity->getDefaultBillingAddress()) {
-            // TODO: fix errors when updating addresses
-            // $customer['defaultBillingAddress'] = $this->getAddress($entity->getDefaultBillingAddress(), $portal);
+            $customer['defaultBillingAddress'] = $this->getAddress($entity->getDefaultBillingAddress(), $context);
         }
 
         if ($entity->getDefaultShippingAddress()) {
-            // TODO: fix errors when updating addresses
-            // $customer['defaultShippingAddress'] = $this->getAddress($entity->getDefaultShippingAddress(), $portal);
+            $customer['defaultShippingAddress'] = $this->getAddress($entity->getDefaultShippingAddress(), $context);
         }
 
         foreach ($entity->getAddresses() as $address) {
-            // TODO: fix errors when updating addresses
-            // $customer['addresses'][] = $this->getAddress($address, $portal);
+            $customer['addresses'][] = $this->getAddress($address, $context);
         }
 
         if (!empty($deleteCustomerTags)) {
@@ -342,33 +338,43 @@ class CustomerReceiver extends ReceiverContract
 
     private function getAddress(Address $address, Context $context): array
     {
-        $address->setPrimaryKey(PrimaryKeyGenerator::generatePrimaryKey($address, 'faa35e6e-27eb-4f0a-bb3d-2e6b03991f9b') ?? (string) Uuid::uuid4()->getHex());
+        $address->setPrimaryKey(
+            PrimaryKeyGenerator::generatePrimaryKey($address, 'faa35e6e-27eb-4f0a-bb3d-2e6b03991f9b')
+            ?? (string) Uuid::uuid4()->getHex()
+        );
+
+        $names = $address->getNames()->asArray();
+        $lastName = \array_pop($names);
+        $firstName = \implode(' ', $names);
 
         $targetAddress = [
             'id' => $address->getPrimaryKey(),
             'title' => $address->getTitle(),
             'salutationId' => $this->getSalutationId($address->getSalutation()),
             'company' => $address->getCompany(),
+            'department' => $address->getDepartment(),
             'additionalAddressLine1' => $address->getAdditionalLines()->offsetGet(0) ?? '',
             'additionalAddressLine2' => $address->getAdditionalLines()->offsetGet(1) ?? '',
             'countryId' => $address->getCountry()->getPrimaryKey(),
             'city' => $address->getCity(),
             'zipcode' => $address->getZipcode(),
-            'street' => $address->getStreet() ? $address->getStreet() . ' ' . $address->getHouseNo() : 'PLACEHOLDER',
-            'firstName' => $address->getNames()->offsetGet(0) ?? '',
-            'lastName' => $address->getNames()->offsetGet(1) ?? '',
+            'street' => ($address->getStreet() . ' ' . $address->getHouseNo()) ?: 'PLACEHOLDER',
+            'firstName' => $firstName,
+            'lastName' => $lastName,
             'vatId' => $address->getVatId(),
             'phoneNumber' => $address->getPhoneNumber(),
         ];
 
         if (!$targetAddress['countryId']) {
             $countryCriteria = new Criteria();
+            $countryCriteria->setLimit(1);
             $countryCriteria->addFilter(new MultiFilter(MultiFilter::CONNECTION_OR, [
                 new EqualsFilter('iso', $address->getCountry()->getIso()),
                 new EqualsFilter('iso3', $address->getCountry()->getIso3()),
             ]));
 
-            $targetAddress['countryId'] = $this->dal->repository('country')->searchIds($countryCriteria, $context)->firstId();
+            $targetAddress['countryId'] = $this->dal->repository('country')
+                ->searchIds($countryCriteria, $context)->firstId();
         }
 
         return $targetAddress;
