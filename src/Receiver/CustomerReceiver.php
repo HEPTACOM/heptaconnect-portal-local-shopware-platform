@@ -310,6 +310,7 @@ class CustomerReceiver extends ReceiverContract
             foreach ($this->dal->ids('salutation', $salutationCriteria) as $id) {
                 $salutationId = $id;
                 $salutation->setPrimaryKey($salutationId);
+
                 break;
             }
         } else {

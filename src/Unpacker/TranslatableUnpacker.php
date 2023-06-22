@@ -32,7 +32,6 @@ class TranslatableUnpacker
         $result = [];
         $knownLocales = \array_filter($this->translationLocaleCache->getLocales(), 'is_string');
 
-
         foreach ($knownLocales as $localeCode) {
             $result[$localeCode][$field] = $translatable->getTranslation($localeCode, true);
         }

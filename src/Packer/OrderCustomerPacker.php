@@ -10,25 +10,13 @@ use Heptacom\HeptaConnect\Dataset\Ecommerce\Address\Country;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Address\CountryState;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Address\Salutation;
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Customer\Customer;
-use Heptacom\HeptaConnect\Dataset\Ecommerce\Customer\CustomerDiscountGroup;
-use Heptacom\HeptaConnect\Dataset\Ecommerce\Customer\CustomerGroup;
-use Heptacom\HeptaConnect\Dataset\Ecommerce\Customer\CustomerPriceGroup;
-use Heptacom\HeptaConnect\Portal\Base\Portal\Contract\PortalStorageInterface;
-use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
-use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\StorageHelper;
-use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
-use Shopware\Core\Checkout\Customer\Aggregate\CustomerGroup\CustomerGroupEntity;
-use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderCustomer\OrderCustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\Country\Aggregate\CountryState\CountryStateEntity;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Language\LanguageEntity;
-use Shopware\Core\System\Tag\TagEntity;
 
 class OrderCustomerPacker
 {

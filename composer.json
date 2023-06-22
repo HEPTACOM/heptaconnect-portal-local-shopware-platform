@@ -23,8 +23,8 @@
     },
     "require": {
         "php": ">=7.4",
-        "ext-json": "*",
         "ext-fileinfo": "*",
+        "ext-json": "*",
         "bentools/iterable-functions": "^1.4",
         "heptacom/heptaconnect-bridge-shopware-platform": "~0.9",
         "heptacom/heptaconnect-core": "~0.9",
@@ -65,7 +65,8 @@
     },
     "config": {
         "allow-plugins": {
-            "infection/extension-installer": true
+            "infection/extension-installer": true,
+            "php-http/discovery": true
         }
     },
     "extra": {
