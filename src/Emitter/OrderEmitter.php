@@ -37,6 +37,7 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderCustomer\OrderCustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
@@ -135,27 +136,42 @@ class OrderEmitter extends EmitterContract
 
         $target->setOrderState($this->orderStatePacker->pack($source->getStateMachineState()->getTechnicalName()));
 
-        switch ($sourceTransaction->getStateMachineState()->getTechnicalName()) {
-            case OrderTransactionStates::STATE_OPEN:
-                $target->getPaymentState()->setState(PaymentState::STATE_OPEN);
+        if ($sourceTransaction instanceof OrderTransactionEntity) {
+            switch ($sourceTransaction->getStateMachineState()->getTechnicalName()) {
+                case OrderTransactionStates::STATE_OPEN:
+                    $target->getPaymentState()->setState(PaymentState::STATE_OPEN);
 
-                break;
-            case OrderTransactionStates::STATE_PAID:
-                $target->getPaymentState()->setState(PaymentState::STATE_PAID);
+                    break;
+                case OrderTransactionStates::STATE_PAID:
+                    $target->getPaymentState()->setState(PaymentState::STATE_PAID);
 
-                break;
-            case OrderTransactionStates::STATE_REFUNDED:
-                $target->getPaymentState()->setState(PaymentState::STATE_REFUNDED);
+                    break;
+                case OrderTransactionStates::STATE_REFUNDED:
+                    $target->getPaymentState()->setState(PaymentState::STATE_REFUNDED);
 
-                break;
-            case OrderTransactionStates::STATE_CANCELLED:
-                $target->getPaymentState()->setState(PaymentState::STATE_CANCELLED);
+                    break;
+                case OrderTransactionStates::STATE_CANCELLED:
+                    $target->getPaymentState()->setState(PaymentState::STATE_CANCELLED);
 
-                break;
-            default:
-                $target->getPaymentState()->setState(PaymentState::STATE_UNKNOWN);
+                    break;
+                default:
+                    $target->getPaymentState()->setState(PaymentState::STATE_UNKNOWN);
 
-                break;
+                    break;
+            }
+
+            $paymentMethod = new PaymentMethod();
+            $paymentMethod->setPrimaryKey($sourceTransaction->getPaymentMethodId());
+
+            if ($sourceTransaction->getPaymentMethod() instanceof PaymentMethodEntity) {
+                $paymentMethod->getName()->setFallback(
+                    $sourceTransaction->getPaymentMethod()->getShortName()
+                    ?? $sourceTransaction->getPaymentMethod()->getName()
+                    ?? $sourceTransaction->getPaymentMethod()->getDescription()
+                );
+            }
+
+            $target->setPaymentMethod($paymentMethod);
         }
 
         $target->setNumber($source->getOrderNumber())
@@ -170,19 +186,6 @@ class OrderEmitter extends EmitterContract
             ->setBillingAddress($targetBillingAddress)
             ->setShippingAddress($targetShippingAddress)
             ->setDeliveryTrackingCode($targetDeliveryTrackingCode);
-
-        $paymentMethod = new PaymentMethod();
-        $paymentMethod->setPrimaryKey($sourceTransaction->getPaymentMethodId());
-
-        if ($sourceTransaction->getPaymentMethod() instanceof PaymentMethodEntity) {
-            $paymentMethod->getName()->setFallback(
-                $sourceTransaction->getPaymentMethod()->getShortName()
-                ?? $sourceTransaction->getPaymentMethod()->getName()
-                ?? $sourceTransaction->getPaymentMethod()->getDescription()
-            );
-        }
-
-        $target->setPaymentMethod($paymentMethod);
 
         return $target;
     }
