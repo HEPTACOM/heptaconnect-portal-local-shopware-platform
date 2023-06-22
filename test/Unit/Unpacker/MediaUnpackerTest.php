@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Test\Unit\Unpacker;
 
 use Heptacom\HeptaConnect\Dataset\Ecommerce\Media\Media;
-use Heptacom\HeptaConnect\Portal\Base\Serialization\Contract\NormalizationRegistryContract;
+use Heptacom\HeptaConnect\Portal\Base\File\FileReferenceResolverContract;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\DalAccess;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\LocaleMatcher;
 use Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Support\TranslationLocaleCache;
@@ -45,7 +45,7 @@ class MediaUnpackerTest extends TestCase
 
         $unpacker = new MediaUnpacker(
             $this->createMock(MediaService::class),
-            $this->createMock(NormalizationRegistryContract::class),
+            $this->createMock(FileReferenceResolverContract::class),
             $dal,
             new TranslatableUnpacker($cache, new LocaleMatcher(new NullLogger()), new NullLogger())
         );
