@@ -50,7 +50,8 @@
     "repositories": {
         "heptaconnect-sources": {
             "type": "path",
-            "url": "../**"
+            "url": "../**",
+            "canonical": false
         }
     },
     "autoload": {
