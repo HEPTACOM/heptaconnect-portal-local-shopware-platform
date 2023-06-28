@@ -35,6 +35,7 @@ The version numbers are structured like `GENERATION.MAJOR.MINOR.PATCH`:
 - Fix emission of Shopware order, when a customer account is not present anymore, by relying on information of the order customer
 - Use same salutation lookup for customer address and customer in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\CustomerReceiver`, so customer do not only use fallback salutation
 - Fix order emission by checking if an order-transaction exists before usage in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Emitter\OrderEmitter`
+- Fix order reception by adding the product number to newly created line items in `\Heptacom\HeptaConnect\Portal\LocalShopwarePlatform\Receiver\OrderReceiver`
 
 ### Security
 
