@@ -188,6 +188,9 @@ class OrderReceiver extends ReceiverContract
             'type' => 'product',
             'productId' => $sourceLineItem->getProduct()->getPrimaryKey(),
             'referencedId' => $sourceLineItem->getProduct()->getPrimaryKey(),
+            'payload' => [
+                'productNumber' => $sourceLineItem->getProduct()->getNumber() ?: $sourceLineItem->getNumber(),
+            ],
         ];
     }
 
